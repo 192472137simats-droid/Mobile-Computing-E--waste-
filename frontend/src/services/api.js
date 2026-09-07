@@ -4,19 +4,39 @@
  * JWT token injection, and concurrent GET request deduplication.
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://vestige-owfd.onrender.com/api';
+const DEFAULT_PROD_API = 'https://vestige-owfd.onrender.com/api';
+
+function getBaseUrl() {
+  const envUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
+  let base = envUrl;
+  
+  // If in production and no absolute URL is provided (e.g. empty or default '/api'), use production Render backend
+  if (!base || base === '/api') {
+    base = import.meta.env.PROD ? DEFAULT_PROD_API : '/api';
+  }
+
+  // Auto-correct typo where environment variable was configured with /ap instead of /api
+  if (base.endsWith('/ap')) {
+    base = base.slice(0, -3) + '/api';
+  }
+  // Strip trailing slashes
+  base = base.replace(/\/+$/, '');
+  // If base does not end with /api and is an absolute URL, ensure /api is included
+  if (base.startsWith('http') && !base.endsWith('/api')) {
+    base = `${base}/api`;
+  }
+  return base;
+}
+
 const TOKEN_KEY = 'vestige_auth_token';
 
 // In-flight GET request cache to prevent duplicate simultaneous network requests
 const inFlightRequests = new Map();
 
 export async function apiClient(endpoint, options = {}) {
-  const normalizedEndpoint = endpoint.startsWith('/api/')
-    ? endpoint.substring(4)
-    : endpoint.startsWith('/')
-    ? endpoint
-    : `/${endpoint}`;
-  const url = `${BASE_URL}${normalizedEndpoint}`;
+  const baseUrl = getBaseUrl();
+  const cleanEndpoint = endpoint.replace(/^\/api\/?/, '/').replace(/^\/?/, '/');
+  const url = `${baseUrl}${cleanEndpoint}`;
   
   const token = localStorage.getItem(TOKEN_KEY);
 
@@ -27,9 +47,15 @@ export async function apiClient(endpoint, options = {}) {
     ...(options.headers || {}),
   };
 
+  // 15-second request timeout to prevent hanging pending states
+  const controller = new AbortController();
+  const timeoutMs = options.timeout || 15000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   const config = {
     ...options,
     headers,
+    signal: options.signal || controller.signal,
   };
 
   const method = (config.method || 'GET').toUpperCase();
@@ -44,6 +70,7 @@ export async function apiClient(endpoint, options = {}) {
   const executeRequest = async () => {
     try {
       const response = await fetch(url, config);
+      clearTimeout(timeoutId);
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
@@ -55,6 +82,12 @@ export async function apiClient(endpoint, options = {}) {
 
       return data;
     } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        const timeoutError = new Error('Backend service connection timed out. Please try again.');
+        timeoutError.status = 504;
+        throw timeoutError;
+      }
       console.error(`API Error on ${endpoint}:`, err);
       throw err;
     } finally {
