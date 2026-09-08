@@ -102,13 +102,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             UUID userUuid = UUID.fromString(subNode.asText());
             String email = emailNode != null && emailNode.isTextual() ? emailNode.asText() : "";
 
-            // Check if user exists in public.users
+            // Check if user exists in public.users (with DB fault isolation)
             UserRepository userRepository = userRepositoryProvider.getIfAvailable();
             Optional<User> userOpt = Optional.empty();
             if (userRepository != null) {
-                userOpt = userRepository.findById(userUuid);
-                if (userOpt.isEmpty() && StringUtils.hasText(email)) {
-                    userOpt = userRepository.findByEmail(email);
+                try {
+                    userOpt = userRepository.findById(userUuid);
+                    if (userOpt.isEmpty() && StringUtils.hasText(email)) {
+                        userOpt = userRepository.findByEmail(email);
+                    }
+                } catch (Exception dbEx) {
+                    logger.warn("Database lookup failed during JWT filter, proceeding with token claims: {}", dbEx.getMessage());
                 }
             }
 
@@ -117,12 +121,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 User user = userOpt.get();
                 principal = UserPrincipal.fromEntity(user);
             } else {
-                // Provisional principal for registration flow
+                // Parse role and full name directly from JWT payload claims
+                UserRole role = UserRole.USER;
+                JsonNode appMetadata = payload.get("app_metadata");
+                JsonNode userMetadata = payload.get("user_metadata");
+                String roleClaim = null;
+                if (appMetadata != null && appMetadata.has("role")) {
+                    roleClaim = appMetadata.get("role").asText();
+                } else if (userMetadata != null && userMetadata.has("role")) {
+                    roleClaim = userMetadata.get("role").asText();
+                }
+                if (roleClaim != null) {
+                    try {
+                        role = UserRole.valueOf(roleClaim.toUpperCase());
+                    } catch (Exception ignored) {}
+                }
+
+                String name = email;
+                if (userMetadata != null && userMetadata.has("full_name") && userMetadata.get("full_name").isTextual()) {
+                    name = userMetadata.get("full_name").asText();
+                }
+
                 principal = new UserPrincipal(
                         userUuid,
                         email,
-                        "Pending Profile Completion",
-                        UserRole.USER,
+                        StringUtils.hasText(name) ? name : "Archival Patron",
+                        role,
                         PreferredLanguage.en,
                         true
                 );

@@ -39,8 +39,17 @@ export function Bookings() {
         apiClient.get('/api/repairs/my').catch(() => ({ data: { data: [] } })),
         apiClient.get('/api/recycling/my').catch(() => ({ data: { data: [] } })),
       ]);
-      setRepairs(repairsRes.data?.data || []);
-      setRecycling(recyclingRes.data?.data || []);
+      const rawRepairs = repairsRes?.data?.data || (Array.isArray(repairsRes?.data) ? repairsRes.data : []);
+      setRepairs(rawRepairs);
+
+      const rawRecycling = recyclingRes?.data?.data || (Array.isArray(recyclingRes?.data) ? recyclingRes.data : []);
+      let localRecycling = [];
+      try {
+        localRecycling = JSON.parse(localStorage.getItem('vestige_recycling_requests') || '[]');
+      } catch {}
+      const existingIds = new Set(rawRecycling.map((r) => r.id));
+      const combinedRecycling = [...rawRecycling, ...localRecycling.filter((l) => !existingIds.has(l.id))];
+      setRecycling(combinedRecycling);
     } catch (err) {
       console.warn('Error loading bookings:', err);
     } finally {
