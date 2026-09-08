@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import PageShell from '../../../components/layout/PageShell/PageShell';
 import Container from '../../../components/layout/Container/Container';
 import LedgerCard from '../../../components/vintage/LedgerCard/LedgerCard';
@@ -24,11 +24,12 @@ const LOCAL_RECYCLING_KEY = 'vestige_recycling_requests';
 
 export function Bookings() {
   const { t } = useTranslation();
+  const location = useLocation();
   const [repairs, setRepairs] = useState([]);
   const [recycling, setRecycling] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('repairs');
-  const [actionMessage, setActionMessage] = useState('');
+  const [actionMessage, setActionMessage] = useState(location.state?.successMessage || '');
   const [selectedBookingForPayment, setSelectedBookingForPayment] = useState(null);
 
   // Confirmation Modal State

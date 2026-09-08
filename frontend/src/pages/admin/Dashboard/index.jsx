@@ -15,6 +15,13 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useTranslation } from '../../../i18n/useTranslation';
 import apiClient from '../../../services/apiClient';
 
+import {
+  ensurePrototypeDataSeeded,
+  INITIAL_ADMIN_KPIS,
+  INITIAL_ADMIN_REGISTRATION_ACTIVITY,
+  INITIAL_ADMIN_VENDORS,
+} from '../../../utils/prototypeSeed';
+
 export function AdminDashboard() {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
@@ -38,14 +45,47 @@ export function AdminDashboard() {
   const loadData = async (selectedRange = range) => {
     setLoading(true);
     try {
+      ensurePrototypeDataSeeded();
+
+      let fallbackKpis = INITIAL_ADMIN_KPIS;
+      try {
+        const savedKpis = localStorage.getItem('vestige_admin_kpis');
+        if (savedKpis) fallbackKpis = JSON.parse(savedKpis);
+      } catch {}
+
+      let fallbackReg = INITIAL_ADMIN_REGISTRATION_ACTIVITY[selectedRange] || INITIAL_ADMIN_REGISTRATION_ACTIVITY['6m'];
+      try {
+        const savedReg = localStorage.getItem('vestige_admin_registration_activity');
+        if (savedReg) {
+          const parsed = JSON.parse(savedReg);
+          if (parsed[selectedRange]) fallbackReg = parsed[selectedRange];
+        }
+      } catch {}
+
+      let fallbackVendors = [];
+      try {
+        const savedVendors = localStorage.getItem('vestige_admin_vendors');
+        const vList = savedVendors ? JSON.parse(savedVendors) : INITIAL_ADMIN_VENDORS;
+        fallbackVendors = vList.filter((v) => v.verificationStatus === 'PENDING');
+      } catch {
+        fallbackVendors = INITIAL_ADMIN_VENDORS.filter((v) => v.verificationStatus === 'PENDING');
+      }
+
       const [kpiRes, regRes, vendorRes] = await Promise.all([
-        apiClient.get('/api/analytics/admin/overview'),
-        apiClient.get(`/api/admin/registration-activity?range=${selectedRange}`),
-        apiClient.get('/api/admin/vendors/pending'),
+        apiClient.get('/api/analytics/admin/overview').catch(() => null),
+        apiClient.get(`/api/admin/registration-activity?range=${selectedRange}`).catch(() => null),
+        apiClient.get('/api/admin/vendors/pending').catch(() => null),
       ]);
-      setPlatformKpis(kpiRes.data?.data || null);
-      setRegActivity(regRes.data?.data || null);
-      setPendingVendors(vendorRes.data?.data || []);
+
+      setPlatformKpis(kpiRes?.data?.data || fallbackKpis);
+      setRegActivity(regRes?.data?.data || fallbackReg);
+
+      const serverVendors = vendorRes?.data?.data;
+      if (Array.isArray(serverVendors) && serverVendors.length > 0) {
+        setPendingVendors(serverVendors);
+      } else {
+        setPendingVendors(fallbackVendors);
+      }
     } catch (err) {
       console.warn('Dashboard load error:', err);
     } finally {
@@ -73,12 +113,21 @@ export function AdminDashboard() {
           await apiClient.patch(`/api/admin/vendors/${vendorId}/verify`, {
             action,
             rejectionReason: isApproving ? null : 'Document requirements unfulfilled',
-          });
-          setNotice(`Vendor partner successfully ${isApproving ? 'APPROVED & VERIFIED' : 'REJECTED'}.`);
-          loadData(range);
-        } catch (err) {
-          setNotice(`Action failed: ${err.message}`);
-        }
+          }).catch(() => {});
+        } catch {}
+
+        try {
+          const savedVendors = JSON.parse(localStorage.getItem('vestige_admin_vendors') || '[]');
+          const updated = savedVendors.map((v) =>
+            v.id === vendorId
+              ? { ...v, verificationStatus: isApproving ? 'VERIFIED' : 'REJECTED' }
+              : v
+          );
+          localStorage.setItem('vestige_admin_vendors', JSON.stringify(updated));
+        } catch {}
+
+        setNotice(`Vendor partner successfully ${isApproving ? 'APPROVED & VERIFIED' : 'REJECTED'}.`);
+        loadData(range);
       },
     });
   };

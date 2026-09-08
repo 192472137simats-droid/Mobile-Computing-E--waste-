@@ -94,6 +94,88 @@ export function AssessmentPage() {
     }
   };
 
+  const handleBookRepair = () => {
+    if (!assessmentResult) return;
+
+    const refId = `REP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const newBooking = {
+      id: refId,
+      submissionId: assessmentResult.id || null,
+      deviceType: assessmentResult.deviceType || formData.deviceType || 'SMARTPHONE',
+      brand: assessmentResult.brand || formData.brand || 'Apparatus',
+      model: assessmentResult.model || formData.model || 'Standard Edition',
+      vendorBusinessName: 'Aegis Precision Electronics Atelier',
+      vendorWhatsappNumber: '+919889568711',
+      estimatedCost: parseFloat(assessmentResult.estimatedRepairCost || formData.repairCost || 3200),
+      status: 'PENDING',
+      preferredDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+      preferredTime: '11:00 AM',
+      issueDescription: selectedIssues.length > 0 ? selectedIssues.join(', ') : 'Hardware diagnostic restoration and testing',
+      isPaid: false,
+      submission: {
+        brand: assessmentResult.brand || formData.brand,
+        model: assessmentResult.model || formData.model,
+        estimatedRepairCost: parseFloat(assessmentResult.estimatedRepairCost || formData.repairCost || 3200),
+        engineScore: assessmentResult.engineScore || 78,
+        engineRecommendation: 'REPAIR',
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      const savedBookings = JSON.parse(localStorage.getItem('vestige_user_bookings') || '[]');
+      savedBookings.unshift(newBooking);
+      localStorage.setItem('vestige_user_bookings', JSON.stringify(savedBookings));
+    } catch (e) {
+      console.warn('Could not save booking locally:', e);
+    }
+
+    try {
+      const vendorRepairs = JSON.parse(localStorage.getItem('vestige_vendor_repairs') || '[]');
+      vendorRepairs.unshift({
+        id: newBooking.id,
+        userName: 'Archival Patron (Self)',
+        userEmail: 'user@vestige.internal',
+        userPhone: '+91 98895 68711',
+        brand: newBooking.brand,
+        model: newBooking.model,
+        deviceType: newBooking.deviceType,
+        status: 'PENDING',
+        preferredDate: newBooking.preferredDate,
+        preferredTime: newBooking.preferredTime,
+        estimatedCost: newBooking.estimatedCost,
+        issueDescription: newBooking.issueDescription,
+        createdAt: new Date().toISOString(),
+      });
+      localStorage.setItem('vestige_vendor_repairs', JSON.stringify(vendorRepairs));
+    } catch (e) {
+      console.warn('Could not mirror booking to vendor:', e);
+    }
+
+    try {
+      const adminRepairs = JSON.parse(localStorage.getItem('vestige_admin_repairs') || '[]');
+      adminRepairs.unshift({
+        id: newBooking.id,
+        userFullName: 'Archival Patron',
+        userEmail: 'user@vestige.internal',
+        brand: newBooking.brand,
+        model: newBooking.model,
+        deviceType: newBooking.deviceType,
+        vendorBusinessName: newBooking.vendorBusinessName,
+        estimatedCost: newBooking.estimatedCost,
+        status: 'PENDING',
+        createdAt: new Date().toISOString(),
+      });
+      localStorage.setItem('vestige_admin_repairs', JSON.stringify(adminRepairs));
+    } catch {}
+
+    navigate('/user/bookings', {
+      state: {
+        successMessage: `Restoration booking #${newBooking.id} scheduled for ${newBooking.brand} ${newBooking.model}!`,
+      },
+    });
+  };
+
   const handleProceedToRecycling = () => {
     if (!assessmentResult) return;
     navigate('/user/recycling', {
@@ -393,7 +475,7 @@ export function AssessmentPage() {
                     <Button
                       variant="ornate"
                       size="lg"
-                      onClick={() => navigate('/portals')}
+                      onClick={handleBookRepair}
                       icon={<IconWrapper name="tools" size={18} />}
                     >
                       {t('assessment.bookRepairBtn', 'Book Certified Repair Workshop')}

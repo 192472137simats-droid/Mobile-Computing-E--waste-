@@ -5,6 +5,8 @@ import LedgerCard from '../../../components/vintage/LedgerCard/LedgerCard';
 import AdminNav from '../../../components/admin/AdminNav';
 import apiClient from '../../../services/apiClient';
 
+import { ensurePrototypeDataSeeded, INITIAL_ADMIN_REWARDS } from '../../../utils/prototypeSeed';
+
 export function AdminRewardsPage() {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,8 +14,31 @@ export function AdminRewardsPage() {
   const loadRewards = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get('/api/admin/rewards');
-      setAccounts(res.data?.data || []);
+      ensurePrototypeDataSeeded();
+      let fallbackRewards = INITIAL_ADMIN_REWARDS;
+      try {
+        const saved = localStorage.getItem('vestige_admin_rewards');
+        const userRew = localStorage.getItem('vestige_reward_account');
+        const adminList = saved ? JSON.parse(saved) : INITIAL_ADMIN_REWARDS;
+        if (userRew) {
+          const uParsed = JSON.parse(userRew);
+          const patronAcc = adminList.find((a) => a.userEmail === 'user@vestige.internal');
+          if (patronAcc) {
+            patronAcc.balance = uParsed.balance ?? patronAcc.balance;
+            patronAcc.lifetimeEarned = uParsed.lifetimeEarned ?? patronAcc.lifetimeEarned;
+            patronAcc.lifetimeRedeemed = uParsed.lifetimeRedeemed ?? patronAcc.lifetimeRedeemed;
+          }
+        }
+        fallbackRewards = adminList;
+      } catch {}
+
+      const res = await apiClient.get('/api/admin/rewards').catch(() => null);
+      const serverRewards = res?.data?.data;
+      if (Array.isArray(serverRewards) && serverRewards.length > 0) {
+        setAccounts(serverRewards);
+      } else {
+        setAccounts(fallbackRewards);
+      }
     } catch (err) {
       console.warn('Failed to load reward accounts:', err);
     } finally {

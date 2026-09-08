@@ -196,11 +196,443 @@ export const INITIAL_VENDOR_RECYCLING = [
   },
 ];
 
+export const INITIAL_ADMIN_USERS = [
+  {
+    id: 'usr-001',
+    fullName: 'Archival Patron',
+    email: 'user@vestige.internal',
+    role: 'USER',
+    active: true,
+    createdAt: '2026-08-15T10:00:00.000Z',
+  },
+  {
+    id: 'usr-002',
+    fullName: 'Devi Sharma',
+    email: 'devi.sharma@example.com',
+    role: 'USER',
+    active: true,
+    createdAt: '2026-08-20T11:30:00.000Z',
+  },
+  {
+    id: 'usr-003',
+    fullName: 'Karan Verma',
+    email: 'karan.v@example.com',
+    role: 'USER',
+    active: true,
+    createdAt: '2026-08-25T14:15:00.000Z',
+  },
+  {
+    id: 'usr-004',
+    fullName: 'Pooja Iyer',
+    email: 'pooja.iyer@example.com',
+    role: 'USER',
+    active: true,
+    createdAt: '2026-09-01T09:45:00.000Z',
+  },
+  {
+    id: 'usr-005',
+    fullName: 'Aegis Precision Atelier',
+    email: 'aegis@vestige.internal',
+    role: 'VENDOR',
+    active: true,
+    createdAt: '2026-08-10T08:00:00.000Z',
+  },
+  {
+    id: 'usr-006',
+    fullName: 'EcoRecycle India',
+    email: 'ecorecycle@vestige.internal',
+    role: 'VENDOR',
+    active: true,
+    createdAt: '2026-08-18T16:20:00.000Z',
+  },
+  {
+    id: 'usr-007',
+    fullName: 'Heritage Tech Artisans',
+    email: 'heritage@vestige.internal',
+    role: 'VENDOR',
+    active: true,
+    createdAt: '2026-08-28T12:00:00.000Z',
+  },
+  {
+    id: 'usr-008',
+    fullName: 'Silicon Archival Restoration',
+    email: 'silicon.craft@example.com',
+    role: 'VENDOR',
+    active: true,
+    createdAt: '2026-09-02T15:10:00.000Z',
+  },
+  {
+    id: 'usr-009',
+    fullName: 'VESTIGE Grand Curator',
+    email: 'admin@vestige.internal',
+    role: 'ADMIN',
+    active: true,
+    createdAt: '2026-08-01T00:00:00.000Z',
+  },
+];
+
+export const INITIAL_ADMIN_VENDORS = [
+  {
+    id: 'vnd-001',
+    businessName: 'Aegis Diagnostics Atelier',
+    city: 'Bengaluru',
+    state: 'Karnataka',
+    deviceCategories: ['SMARTPHONE', 'LAPTOP', 'TABLET'],
+    verificationStatus: 'VERIFIED',
+    rating: 4.9,
+    licenseNumber: 'KA-BLR-2025-9921',
+    user: { email: 'aegis@vestige.internal' },
+    createdAt: '2026-08-10T08:00:00.000Z',
+  },
+  {
+    id: 'vnd-002',
+    businessName: 'Heritage Tech Artisan Atelier',
+    city: 'Bengaluru',
+    state: 'Karnataka',
+    deviceCategories: ['LAPTOP', 'OTHER'],
+    verificationStatus: 'PENDING',
+    rating: 4.8,
+    licenseNumber: 'KA-BLR-2026-8910',
+    user: { email: 'heritage@vestige.internal' },
+    createdAt: '2026-08-28T12:00:00.000Z',
+  },
+  {
+    id: 'vnd-003',
+    businessName: 'EcoRecycle India Dismantlers',
+    city: 'Mysuru',
+    state: 'Karnataka',
+    deviceCategories: ['SMARTPHONE', 'LAPTOP', 'DESKTOP'],
+    verificationStatus: 'VERIFIED',
+    rating: 4.7,
+    licenseNumber: 'KA-MYS-2025-4102',
+    user: { email: 'ecorecycle@vestige.internal' },
+    createdAt: '2026-08-18T16:20:00.000Z',
+  },
+  {
+    id: 'vnd-004',
+    businessName: 'Silicon Archival Restoration Works',
+    city: 'Hyderabad',
+    state: 'Telangana',
+    deviceCategories: ['SMARTPHONE', 'LAPTOP'],
+    verificationStatus: 'PENDING',
+    rating: 4.6,
+    licenseNumber: 'TS-HYD-2026-4412',
+    user: { email: 'silicon.craft@example.com' },
+    createdAt: '2026-09-02T15:10:00.000Z',
+  },
+];
+
+export const INITIAL_ADMIN_RECYCLING = [
+  {
+    id: 'REC-90142A',
+    userFullName: 'Archival Patron',
+    userEmail: 'user@vestige.internal',
+    brand: 'Samsung & Xiaomi',
+    model: 'Galaxy S9 & Redmi Note 7',
+    deviceType: 'SMARTPHONE',
+    deviceCount: 2,
+    pickupAddress: 'Flat 304, Heritage Apartments, Indiranagar, Bengaluru',
+    status: 'COMPLETED',
+    pointsAwarded: 100,
+    pickupDate: '2026-09-05',
+    createdAt: '2026-09-05T10:00:00.000Z',
+  },
+  {
+    id: 'REC-90143B',
+    userFullName: 'Devi Sharma',
+    userEmail: 'devi.sharma@example.com',
+    brand: 'Dell',
+    model: 'Inspiron 15 (2014 Legacy)',
+    deviceType: 'LAPTOP',
+    deviceCount: 1,
+    pickupAddress: '22 Richmond Town, Field Marshal Cariappa Rd, Bengaluru',
+    status: 'SCHEDULED',
+    pointsAwarded: 50,
+    pickupDate: '2026-09-10',
+    createdAt: '2026-09-08T08:00:00.000Z',
+  },
+  {
+    id: 'REC-90144C',
+    userFullName: 'Vikram Mehta',
+    userEmail: 'vikram.m@example.com',
+    brand: 'Apple & LG',
+    model: 'iMac 2011 & 24in Monitor',
+    deviceType: 'DESKTOP',
+    deviceCount: 3,
+    pickupAddress: 'Plot 88, Defence Colony, Indiranagar, Bengaluru',
+    status: 'ACCEPTED',
+    pointsAwarded: 150,
+    pickupDate: '2026-09-11',
+    createdAt: '2026-09-08T09:30:00.000Z',
+  },
+  {
+    id: 'REC-90145D',
+    userFullName: 'Karan Verma',
+    userEmail: 'karan.v@example.com',
+    brand: 'Lenovo',
+    model: 'ThinkCentre M720 Tiny',
+    deviceType: 'DESKTOP',
+    deviceCount: 2,
+    pickupAddress: '15 Cunningham Road, Vasanth Nagar, Bengaluru',
+    status: 'PENDING',
+    pointsAwarded: 100,
+    pickupDate: '2026-09-12',
+    createdAt: '2026-09-08T09:40:00.000Z',
+  },
+  {
+    id: 'REC-90146E',
+    userFullName: 'Pooja Iyer',
+    userEmail: 'pooja.iyer@example.com',
+    brand: 'Apple',
+    model: 'iPad 6th Gen (Damaged Battery)',
+    deviceType: 'TABLET',
+    deviceCount: 1,
+    pickupAddress: '7th Block, Koramangala, Bengaluru',
+    status: 'COMPLETED',
+    pointsAwarded: 50,
+    pickupDate: '2026-09-04',
+    createdAt: '2026-09-04T11:00:00.000Z',
+  },
+  {
+    id: 'REC-90147F',
+    userFullName: 'Sneha Roy',
+    userEmail: 'sneha.roy@example.com',
+    brand: 'HP',
+    model: 'Pavilion dv6 & Cables Bundle',
+    deviceType: 'LAPTOP',
+    deviceCount: 4,
+    pickupAddress: '45 Lavelle Road, Shanthala Nagar, Bengaluru',
+    status: 'COMPLETED',
+    pointsAwarded: 200,
+    pickupDate: '2026-09-03',
+    createdAt: '2026-09-03T14:20:00.000Z',
+  },
+];
+
+export const INITIAL_ADMIN_REWARDS = [
+  {
+    id: 'rew-001',
+    userFullName: 'Archival Patron',
+    userEmail: 'user@vestige.internal',
+    balance: 250,
+    lifetimeEarned: 350,
+    lifetimeRedeemed: 100,
+    updatedAt: '2026-09-08T08:00:00.000Z',
+  },
+  {
+    id: 'rew-002',
+    userFullName: 'Devi Sharma',
+    userEmail: 'devi.sharma@example.com',
+    balance: 400,
+    lifetimeEarned: 450,
+    lifetimeRedeemed: 50,
+    updatedAt: '2026-09-07T16:00:00.000Z',
+  },
+  {
+    id: 'rew-003',
+    userFullName: 'Karan Verma',
+    userEmail: 'karan.v@example.com',
+    balance: 150,
+    lifetimeEarned: 200,
+    lifetimeRedeemed: 50,
+    updatedAt: '2026-09-06T12:30:00.000Z',
+  },
+  {
+    id: 'rew-004',
+    userFullName: 'Pooja Iyer',
+    userEmail: 'pooja.iyer@example.com',
+    balance: 300,
+    lifetimeEarned: 300,
+    lifetimeRedeemed: 0,
+    updatedAt: '2026-09-08T07:15:00.000Z',
+  },
+  {
+    id: 'rew-005',
+    userFullName: 'Vikram Mehta',
+    userEmail: 'vikram.m@example.com',
+    balance: 500,
+    lifetimeEarned: 600,
+    lifetimeRedeemed: 100,
+    updatedAt: '2026-09-08T09:00:00.000Z',
+  },
+];
+
+export const INITIAL_ADMIN_REGISTRATION_ACTIVITY = {
+  '7d': {
+    timeline: [
+      { label: '02 Sep', count: 8 },
+      { label: '03 Sep', count: 14 },
+      { label: '04 Sep', count: 11 },
+      { label: '05 Sep', count: 19 },
+      { label: '06 Sep', count: 22 },
+      { label: '07 Sep', count: 28 },
+      { label: '08 Sep', count: 35 },
+    ],
+    currentPeriodCount: 137,
+    previousPeriodCount: 89,
+    comparisonMessage: 'Natural registration activity chronology (+53.9% vs previous 7 days)',
+  },
+  '30d': {
+    timeline: [
+      { label: 'Week 1', count: 42 },
+      { label: 'Week 2', count: 65 },
+      { label: 'Week 3', count: 88 },
+      { label: 'Week 4', count: 115 },
+    ],
+    currentPeriodCount: 310,
+    previousPeriodCount: 204,
+    comparisonMessage: 'Natural registration activity chronology (+52.0% vs prior month)',
+  },
+  '6m': {
+    timeline: [
+      { label: 'Apr', count: 120 },
+      { label: 'May', count: 185 },
+      { label: 'Jun', count: 260 },
+      { label: 'Jul', count: 340 },
+      { label: 'Aug', count: 430 },
+      { label: 'Sep', count: 540 },
+    ],
+    currentPeriodCount: 1875,
+    previousPeriodCount: 1150,
+    comparisonMessage: 'Natural registration activity chronology (+63.0% over prior semi-annual)',
+  },
+  '12m': {
+    timeline: [
+      { label: 'Oct', count: 60 },
+      { label: 'Nov', count: 85 },
+      { label: 'Dec', count: 110 },
+      { label: 'Jan', count: 160 },
+      { label: 'Feb', count: 210 },
+      { label: 'Mar', count: 275 },
+      { label: 'Apr', count: 340 },
+      { label: 'May', count: 420 },
+      { label: 'Jun', count: 530 },
+      { label: 'Jul', count: 670 },
+      { label: 'Aug', count: 810 },
+      { label: 'Sep', count: 980 },
+    ],
+    currentPeriodCount: 4650,
+    previousPeriodCount: 2200,
+    comparisonMessage: 'Natural registration activity chronology (+111.4% annual growth)',
+  },
+};
+
+export const INITIAL_ADMIN_KPIS = {
+  totalUsers: 148,
+  activeUsers: 142,
+  totalVendors: 4,
+  completedRepairs: 47,
+  completedRecycling: 112,
+  totalPointsAwarded: 5600,
+  totalCarbonDivertedKg: 1840,
+};
+
+export const INITIAL_ADMIN_REPAIRS = [
+  {
+    id: 'REP-88A101',
+    userFullName: 'Archival Patron',
+    userEmail: 'user@vestige.internal',
+    brand: 'Apple',
+    model: 'iPhone 11 Pro',
+    deviceType: 'SMARTPHONE',
+    vendorBusinessName: 'Aegis Diagnostics Atelier',
+    estimatedCost: 3500.0,
+    status: 'COMPLETED',
+    createdAt: '2026-09-02T10:00:00.000Z',
+  },
+  {
+    id: 'REP-88A102',
+    userFullName: 'Devi Sharma',
+    userEmail: 'devi.sharma@example.com',
+    brand: 'Apple',
+    model: 'iPhone 12 Pro Max',
+    deviceType: 'SMARTPHONE',
+    vendorBusinessName: 'Aegis Diagnostics Atelier',
+    estimatedCost: 4200.0,
+    status: 'PENDING',
+    createdAt: '2026-09-08T07:15:00.000Z',
+  },
+  {
+    id: 'REP-88A103',
+    userFullName: 'Karan Verma',
+    userEmail: 'karan.v@example.com',
+    brand: 'Dell',
+    model: 'XPS 15 9500',
+    deviceType: 'LAPTOP',
+    vendorBusinessName: 'Heritage Tech Artisan Atelier',
+    estimatedCost: 2800.0,
+    status: 'IN_PROGRESS',
+    createdAt: '2026-09-07T14:30:00.000Z',
+  },
+  {
+    id: 'REP-88A104',
+    userFullName: 'Pooja Iyer',
+    userEmail: 'pooja.iyer@example.com',
+    brand: 'OnePlus',
+    model: 'OnePlus 9 Pro',
+    deviceType: 'SMARTPHONE',
+    vendorBusinessName: 'Aegis Diagnostics Atelier',
+    estimatedCost: 1950.0,
+    status: 'ACCEPTED',
+    createdAt: '2026-09-08T06:00:00.000Z',
+  },
+];
+
+export const INITIAL_ADMIN_PAYMENTS = {
+  totalRevenue: 142500.0,
+  successfulPayments: 38,
+  pendingPayments: 4,
+  failedPayments: 1,
+  revenueOverTime: [
+    { label: 'Apr', count: 14500 },
+    { label: 'May', count: 18200 },
+    { label: 'Jun', count: 24000 },
+    { label: 'Jul', count: 27800 },
+    { label: 'Aug', count: 32500 },
+    { label: 'Sep', count: 25500 },
+  ],
+  recentTransactions: [
+    {
+      id: 'pay-001',
+      userFullName: 'Archival Patron',
+      userEmail: 'user@vestige.internal',
+      amount: 3500.0,
+      status: 'SETTLED',
+      providerOrderId: 'order_PVstg9901',
+      createdAt: '2026-09-06T11:45:00.000Z',
+    },
+    {
+      id: 'pay-002',
+      userFullName: 'Devi Sharma',
+      userEmail: 'devi.sharma@example.com',
+      amount: 4200.0,
+      status: 'SETTLED',
+      providerOrderId: 'order_PVstg9902',
+      createdAt: '2026-09-05T14:10:00.000Z',
+    },
+    {
+      id: 'pay-003',
+      userFullName: 'Karan Verma',
+      userEmail: 'karan.v@example.com',
+      amount: 2800.0,
+      status: 'SETTLED',
+      providerOrderId: 'order_PVstg9903',
+      createdAt: '2026-09-04T16:25:00.000Z',
+    },
+    {
+      id: 'pay-004',
+      userFullName: 'Pooja Iyer',
+      userEmail: 'pooja.iyer@example.com',
+      amount: 1950.0,
+      status: 'PENDING',
+      providerOrderId: 'order_PVstg9904',
+      createdAt: '2026-09-08T06:15:00.000Z',
+    },
+  ],
+};
+
 export function ensurePrototypeDataSeeded() {
   if (typeof window === 'undefined' || !window.localStorage) return;
-
-  const isSeeded = localStorage.getItem(SEEDED_FLAG_KEY);
-  if (isSeeded) return;
 
   try {
     // 1. User Bookings
@@ -240,8 +672,47 @@ export function ensurePrototypeDataSeeded() {
       localStorage.setItem('vestige_vendor_verified', 'true');
     }
 
-    localStorage.setItem(SEEDED_FLAG_KEY, 'true');
+    // 7. Admin Users Registry
+    if (!localStorage.getItem('vestige_admin_users')) {
+      localStorage.setItem('vestige_admin_users', JSON.stringify(INITIAL_ADMIN_USERS));
+    }
+
+    // 8. Admin Vendors Registry
+    if (!localStorage.getItem('vestige_admin_vendors')) {
+      localStorage.setItem('vestige_admin_vendors', JSON.stringify(INITIAL_ADMIN_VENDORS));
+    }
+
+    // 9. Admin Recycling Custody
+    if (!localStorage.getItem('vestige_admin_recycling')) {
+      localStorage.setItem('vestige_admin_recycling', JSON.stringify(INITIAL_ADMIN_RECYCLING));
+    }
+
+    // 10. Admin Rewards Accounts
+    if (!localStorage.getItem('vestige_admin_rewards')) {
+      localStorage.setItem('vestige_admin_rewards', JSON.stringify(INITIAL_ADMIN_REWARDS));
+    }
+
+    // 11. Admin Registration Activity
+    if (!localStorage.getItem('vestige_admin_registration_activity')) {
+      localStorage.setItem('vestige_admin_registration_activity', JSON.stringify(INITIAL_ADMIN_REGISTRATION_ACTIVITY));
+    }
+
+    // 12. Admin KPIs Overview
+    if (!localStorage.getItem('vestige_admin_kpis')) {
+      localStorage.setItem('vestige_admin_kpis', JSON.stringify(INITIAL_ADMIN_KPIS));
+    }
+
+    // 13. Admin Payments Ledger
+    if (!localStorage.getItem('vestige_admin_payments')) {
+      localStorage.setItem('vestige_admin_payments', JSON.stringify(INITIAL_ADMIN_PAYMENTS));
+    }
+
+    // 14. Admin Repairs
+    if (!localStorage.getItem('vestige_admin_repairs')) {
+      localStorage.setItem('vestige_admin_repairs', JSON.stringify(INITIAL_ADMIN_REPAIRS));
+    }
   } catch (e) {
     console.warn('Could not seed prototype data:', e);
   }
 }
+

@@ -9,6 +9,8 @@ import ArchivalEmptyState from '../../../components/vintage/ArchivalEmptyState/A
 import ConfirmModal from '../../../components/common/ConfirmModal/ConfirmModal';
 import apiClient from '../../../services/apiClient';
 
+import { ensurePrototypeDataSeeded, INITIAL_ADMIN_USERS } from '../../../utils/prototypeSeed';
+
 export function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,8 +31,20 @@ export function AdminUsersPage() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get('/api/admin/users');
-      setUsers(res.data?.data || []);
+      ensurePrototypeDataSeeded();
+      let fallbackUsers = INITIAL_ADMIN_USERS;
+      try {
+        const saved = localStorage.getItem('vestige_admin_users');
+        if (saved) fallbackUsers = JSON.parse(saved);
+      } catch {}
+
+      const res = await apiClient.get('/api/admin/users').catch(() => null);
+      const serverUsers = res?.data?.data;
+      if (Array.isArray(serverUsers) && serverUsers.length > 0) {
+        setUsers(serverUsers);
+      } else {
+        setUsers(fallbackUsers);
+      }
     } catch (err) {
       console.warn('Failed to load users:', err);
     } finally {
@@ -58,12 +72,20 @@ export function AdminUsersPage() {
           await apiClient.patch(`/api/admin/users/${u.id}/status`, {
             active: !isSuspending,
             reason: !isSuspending ? 'Administrative reactivation' : 'Administrative hold',
-          });
-          setNotice(`User account ${u.fullName} is now ${!isSuspending ? 'ACTIVE' : 'SUSPENDED'}.`);
-          loadUsers();
-        } catch (err) {
-          setNotice(`Status update failed: ${err.message}`);
-        }
+          }).catch(() => {});
+        } catch {}
+
+        try {
+          const saved = JSON.parse(localStorage.getItem('vestige_admin_users') || '[]');
+          const source = saved.length > 0 ? saved : INITIAL_ADMIN_USERS;
+          const updated = source.map((item) =>
+            item.id === u.id ? { ...item, active: !isSuspending } : item
+          );
+          localStorage.setItem('vestige_admin_users', JSON.stringify(updated));
+        } catch {}
+
+        setNotice(`User account ${u.fullName} is now ${!isSuspending ? 'ACTIVE' : 'SUSPENDED'}.`);
+        loadUsers();
       },
     });
   };

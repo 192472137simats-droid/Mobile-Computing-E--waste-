@@ -9,6 +9,8 @@ import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/Archi
 import ArchivalEmptyState from '../../../components/vintage/ArchivalEmptyState/ArchivalEmptyState';
 import apiClient from '../../../services/apiClient';
 
+import { ensurePrototypeDataSeeded, INITIAL_ADMIN_PAYMENTS } from '../../../utils/prototypeSeed';
+
 export function AdminPaymentsPage() {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,8 +20,20 @@ export function AdminPaymentsPage() {
   const loadPayments = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get('/api/admin/payments');
-      setMetrics(res.data?.data || null);
+      ensurePrototypeDataSeeded();
+      let fallbackPayments = INITIAL_ADMIN_PAYMENTS;
+      try {
+        const saved = localStorage.getItem('vestige_admin_payments');
+        if (saved) fallbackPayments = JSON.parse(saved);
+      } catch {}
+
+      const res = await apiClient.get('/api/admin/payments').catch(() => null);
+      const serverMetrics = res?.data?.data;
+      if (serverMetrics && serverMetrics.recentTransactions?.length > 0) {
+        setMetrics(serverMetrics);
+      } else {
+        setMetrics(fallbackPayments);
+      }
     } catch (err) {
       console.warn('Failed to load payment metrics:', err);
     } finally {

@@ -7,6 +7,8 @@ import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/Archi
 import ArchivalEmptyState from '../../../components/vintage/ArchivalEmptyState/ArchivalEmptyState';
 import apiClient from '../../../services/apiClient';
 
+import { ensurePrototypeDataSeeded, INITIAL_ADMIN_REPAIRS } from '../../../utils/prototypeSeed';
+
 export function AdminRepairsPage() {
   const [repairs, setRepairs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,8 +18,38 @@ export function AdminRepairsPage() {
   const loadRepairs = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get('/api/admin/repairs');
-      setRepairs(res.data?.data || []);
+      ensurePrototypeDataSeeded();
+      let fallbackRepairs = INITIAL_ADMIN_REPAIRS;
+      try {
+        const saved = localStorage.getItem('vestige_admin_repairs');
+        const userBk = localStorage.getItem('vestige_user_bookings');
+        const adminList = saved ? JSON.parse(saved) : INITIAL_ADMIN_REPAIRS;
+        const patronList = userBk ? JSON.parse(userBk) : [];
+        const existingIds = new Set(adminList.map((x) => x.id));
+        const formattedPatronList = patronList
+          .filter((p) => !existingIds.has(p.id))
+          .map((p) => ({
+            id: p.id,
+            userFullName: p.userFullName || 'Archival Patron',
+            userEmail: p.userEmail || 'user@vestige.internal',
+            brand: p.brand || 'Electronics',
+            model: p.model || 'Device',
+            deviceType: p.deviceType || 'SMARTPHONE',
+            vendorBusinessName: p.vendorBusinessName || 'Aegis Precision Atelier',
+            estimatedCost: p.estimatedCost || 3500,
+            status: p.status || 'PENDING',
+            createdAt: p.createdAt || new Date().toISOString(),
+          }));
+        fallbackRepairs = [...formattedPatronList, ...adminList];
+      } catch {}
+
+      const res = await apiClient.get('/api/admin/repairs').catch(() => null);
+      const serverRepairs = res?.data?.data;
+      if (Array.isArray(serverRepairs) && serverRepairs.length > 0) {
+        setRepairs(serverRepairs);
+      } else {
+        setRepairs(fallbackRepairs);
+      }
     } catch (err) {
       console.warn('Failed to load repairs:', err);
     } finally {

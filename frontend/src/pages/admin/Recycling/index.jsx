@@ -7,6 +7,8 @@ import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/Archi
 import ArchivalEmptyState from '../../../components/vintage/ArchivalEmptyState/ArchivalEmptyState';
 import apiClient from '../../../services/apiClient';
 
+import { ensurePrototypeDataSeeded, INITIAL_ADMIN_RECYCLING } from '../../../utils/prototypeSeed';
+
 export function AdminRecyclingPage() {
   const [recycling, setRecycling] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,8 +18,39 @@ export function AdminRecyclingPage() {
   const loadRecycling = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get('/api/admin/recycling');
-      setRecycling(res.data?.data || []);
+      ensurePrototypeDataSeeded();
+      let fallbackRecycling = INITIAL_ADMIN_RECYCLING;
+      try {
+        const saved = localStorage.getItem('vestige_admin_recycling');
+        const userRec = localStorage.getItem('vestige_recycling_requests');
+        const adminList = saved ? JSON.parse(saved) : INITIAL_ADMIN_RECYCLING;
+        const patronList = userRec ? JSON.parse(userRec) : [];
+        const existingIds = new Set(adminList.map((x) => x.id));
+        const formattedPatronList = patronList
+          .filter((p) => !existingIds.has(p.id))
+          .map((p) => ({
+            id: p.id,
+            userFullName: p.userFullName || 'Archival Patron',
+            userEmail: p.userEmail || 'user@vestige.internal',
+            brand: p.brand || 'Electronics',
+            model: p.model || 'Parcel',
+            deviceType: p.deviceType || 'SMARTPHONE',
+            deviceCount: p.deviceCount || 1,
+            pickupAddress: p.pickupAddress || 'Indiranagar, Bengaluru',
+            status: p.status || 'PENDING',
+            pickupDate: p.pickupDate || new Date().toISOString().split('T')[0],
+            createdAt: p.createdAt || new Date().toISOString(),
+          }));
+        fallbackRecycling = [...formattedPatronList, ...adminList];
+      } catch {}
+
+      const res = await apiClient.get('/api/admin/recycling').catch(() => null);
+      const serverRec = res?.data?.data;
+      if (Array.isArray(serverRec) && serverRec.length > 0) {
+        setRecycling(serverRec);
+      } else {
+        setRecycling(fallbackRecycling);
+      }
     } catch (err) {
       console.warn('Failed to load recycling records:', err);
     } finally {

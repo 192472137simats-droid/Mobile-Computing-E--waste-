@@ -115,8 +115,48 @@ export function RecyclingPage() {
       if (res && res.data) {
         const refId = res.data.id ? res.data.id.substring(0, 8).toUpperCase() : 'PENDING';
         setSuccessMsg(
-          `✦ Collection scheduled successfully! Your archival reference ID is #${refId}. Facility: ${res.data.vendorBusinessName || 'Certified Recycler'}. Estimated Points: ${count * 50} PTS.`
+          `✦ Collection scheduled successfully! Archival Reference ID: #${refId}. Logistics Partner: ${res.data.vendorBusinessName || 'Certified Recycler'}. +${count * 50} Circular Reward Points credited!`
         );
+
+        // Mirror to vendor recycling queue
+        try {
+          const vRec = JSON.parse(localStorage.getItem('vestige_vendor_recycling') || '[]');
+          vRec.unshift({
+            id: res.data.id,
+            userName: 'Archival Patron (Self)',
+            userPhone: '+91 98895 68711',
+            pickupAddress: payload.pickupAddress,
+            pickupDate: payload.pickupDate,
+            pickupTime: payload.pickupTime,
+            brand: payload.brand,
+            model: payload.model,
+            deviceCount: count,
+            deviceType: payload.deviceType,
+            status: 'PENDING',
+          });
+          localStorage.setItem('vestige_vendor_recycling', JSON.stringify(vRec));
+        } catch {}
+
+        // Mirror to admin recycling registry
+        try {
+          const aRec = JSON.parse(localStorage.getItem('vestige_admin_recycling') || '[]');
+          aRec.unshift({
+            id: res.data.id,
+            userFullName: 'Archival Patron',
+            userEmail: 'user@vestige.internal',
+            brand: payload.brand,
+            model: payload.model,
+            deviceType: payload.deviceType,
+            deviceCount: count,
+            pickupAddress: payload.pickupAddress,
+            status: 'PENDING',
+            pointsAwarded: count * 50,
+            pickupDate: payload.pickupDate,
+            createdAt: new Date().toISOString(),
+          });
+          localStorage.setItem('vestige_admin_recycling', JSON.stringify(aRec));
+        } catch {}
+
         const requestsRes = await recyclingService.getMyRecyclingRequests();
         if (requestsRes && requestsRes.data) {
           setRequests(requestsRes.data);
@@ -167,7 +207,14 @@ export function RecyclingPage() {
           {successMsg && (
             <div className={`${styles.alertBox} ${styles.alertSuccess}`} role="status">
               <IconWrapper name="check" size={20} color="var(--vestige-moss)" />
-              <span>{successMsg}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <span>{successMsg}</span>
+                <Link to="/user/bookings" style={{ textDecoration: 'none' }}>
+                  <Button variant="primary" size="sm">
+                    View in Archival Ledger →
+                  </Button>
+                </Link>
+              </div>
             </div>
           )}
 
