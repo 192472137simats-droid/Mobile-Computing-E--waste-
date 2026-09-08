@@ -16,6 +16,7 @@ import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/Archi
 import ConfirmModal from '../../../components/common/ConfirmModal/ConfirmModal';
 import recyclingService from '../../../services/recyclingService';
 import vendorService from '../../../services/vendorService';
+import { logPlatformActivity } from '../../../utils/prototypeSeed';
 import styles from './Recycling.module.css';
 
 export function RecyclingPage() {
@@ -156,6 +157,21 @@ export function RecyclingPage() {
           });
           localStorage.setItem('vestige_admin_recycling', JSON.stringify(aRec));
         } catch {}
+
+        // Log activity for Admin visibility
+        logPlatformActivity({
+          actorRole: 'USER',
+          actorName: 'Archival Patron (Self)',
+          actorEmail: 'user@vestige.internal',
+          actionType: 'RECYCLING_SCHEDULED',
+          category: 'RECYCLING',
+          description: `Scheduled e-waste collection for ${count} ${payload.brand} ${payload.model}`,
+          targetEntity: 'RecyclingRequest',
+          targetId: res.data.id,
+          details: `+${count * 50} Circular Points • Logistics: ${res.data.vendorBusinessName || 'Certified Recycler'}`,
+          badge: 'USER',
+          status: 'PENDING',
+        });
 
         const requestsRes = await recyclingService.getMyRecyclingRequests();
         if (requestsRes && requestsRes.data) {

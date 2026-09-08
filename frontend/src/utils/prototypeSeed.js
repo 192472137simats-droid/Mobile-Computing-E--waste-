@@ -711,8 +711,168 @@ export function ensurePrototypeDataSeeded() {
     if (!localStorage.getItem('vestige_admin_repairs')) {
       localStorage.setItem('vestige_admin_repairs', JSON.stringify(INITIAL_ADMIN_REPAIRS));
     }
+
+    // 15. Real-Time Platform Activities (User & Vendor event stream)
+    if (!localStorage.getItem('vestige_platform_activities')) {
+      localStorage.setItem('vestige_platform_activities', JSON.stringify(INITIAL_PLATFORM_ACTIVITIES));
+    }
   } catch (e) {
     console.warn('Could not seed prototype data:', e);
   }
 }
+
+export const INITIAL_PLATFORM_ACTIVITIES = [
+  {
+    id: 'act-001',
+    timestamp: '2026-09-08T07:15:00.000Z',
+    actorRole: 'USER',
+    actorName: 'Devi Sharma',
+    actorEmail: 'devi.sharma@example.com',
+    actionType: 'REPAIR_BOOKED',
+    category: 'REPAIR',
+    description: 'Submitted repair booking for Apple iPhone 12 Pro Max (Cracked OLED)',
+    targetEntity: 'RepairBooking',
+    targetId: 'REP-88A102',
+    details: 'Quoted: ₹4,200 • Assigned Workshop: Aegis Diagnostics Atelier',
+    badge: 'USER',
+    status: 'PENDING',
+  },
+  {
+    id: 'act-002',
+    timestamp: '2026-09-08T06:00:00.000Z',
+    actorRole: 'VENDOR',
+    actorName: 'Aegis Diagnostics Atelier',
+    actorEmail: 'aegis@vestige.internal',
+    actionType: 'JOB_ACCEPTED',
+    category: 'REPAIR',
+    description: 'Accepted diagnostic restoration job for OnePlus 9 Pro (Charging port loose)',
+    targetEntity: 'RepairBooking',
+    targetId: 'REP-88A104',
+    details: 'Estimate: ₹1,950 • Patron: Pooja Iyer',
+    badge: 'VENDOR',
+    status: 'ACCEPTED',
+  },
+  {
+    id: 'act-003',
+    timestamp: '2026-09-07T14:30:00.000Z',
+    actorRole: 'VENDOR',
+    actorName: 'Heritage Tech Artisan Atelier',
+    actorEmail: 'heritage@vestige.internal',
+    actionType: 'WORKBENCH_ACTIVE',
+    category: 'REPAIR',
+    description: 'Started thermal repaste and motherboard circuit servicing on Dell XPS 15',
+    targetEntity: 'RepairBooking',
+    targetId: 'REP-88A103',
+    details: 'Estimate: ₹2,800 • Patron: Karan Verma',
+    badge: 'VENDOR',
+    status: 'IN_PROGRESS',
+  },
+  {
+    id: 'act-004',
+    timestamp: '2026-09-06T11:45:00.000Z',
+    actorRole: 'USER',
+    actorName: 'Archival Patron',
+    actorEmail: 'user@vestige.internal',
+    actionType: 'PAYMENT_SETTLED',
+    category: 'PAYMENTS',
+    description: 'Completed Razorpay payment for iPhone 11 Pro repair bill',
+    targetEntity: 'PaymentTransaction',
+    targetId: 'order_PVstg9901',
+    details: 'Amount: ₹3,500.00 • Receipt: #VSTG-PAY-882190',
+    badge: 'USER',
+    status: 'SETTLED',
+  },
+  {
+    id: 'act-005',
+    timestamp: '2026-09-05T10:00:00.000Z',
+    actorRole: 'USER',
+    actorName: 'Archival Patron',
+    actorEmail: 'user@vestige.internal',
+    actionType: 'RECYCLING_SCHEDULED',
+    category: 'RECYCLING',
+    description: 'Scheduled zero-landfill pickup for 2 devices (Galaxy S9 & Redmi Note 7)',
+    targetEntity: 'RecyclingRequest',
+    targetId: 'REC-90142A',
+    details: 'Earned +100 Circular Reward Points • Indiranagar doorstep pickup',
+    badge: 'USER',
+    status: 'COMPLETED',
+  },
+  {
+    id: 'act-006',
+    timestamp: '2026-09-04T16:20:00.000Z',
+    actorRole: 'VENDOR',
+    actorName: 'EcoRecycle India Dismantlers',
+    actorEmail: 'ecorecycle@vestige.internal',
+    actionType: 'DISMANTLE_VERIFIED',
+    category: 'RECYCLING',
+    description: 'Certified intake and circular dismantling of 4 laptops and peripheral cables',
+    targetEntity: 'RecyclingRequest',
+    targetId: 'REC-90147F',
+    details: 'Recovered: 240g precious metals • Landfill diversion certified',
+    badge: 'VENDOR',
+    status: 'COMPLETED',
+  },
+  {
+    id: 'act-007',
+    timestamp: '2026-09-03T12:00:00.000Z',
+    actorRole: 'USER',
+    actorName: 'Devi Sharma',
+    actorEmail: 'devi.sharma@example.com',
+    actionType: 'REWARD_REDEEMED',
+    category: 'REWARDS',
+    description: 'Redeemed 50 Circular Reward Points for 10% workshop repair discount voucher',
+    targetEntity: 'RewardVoucher',
+    targetId: 'VCH-9921',
+    details: 'Remaining Balance: 400 PTS • Atelier: Aegis Diagnostics',
+    badge: 'USER',
+    status: 'CONFIRMED',
+  },
+  {
+    id: 'act-008',
+    timestamp: '2026-09-02T15:10:00.000Z',
+    actorRole: 'VENDOR',
+    actorName: 'Silicon Archival Restoration Works',
+    actorEmail: 'silicon.craft@example.com',
+    actionType: 'ACCREDITATION_APPLIED',
+    category: 'ACCREDITATION',
+    description: 'Submitted partner workshop trade license TS-HYD-2026-4412 for audit',
+    targetEntity: 'VendorProfile',
+    targetId: 'vnd-004',
+    details: 'Categories: Smartphones, Laptops • Hyderabad workshop facility',
+    badge: 'VENDOR',
+    status: 'PENDING',
+  },
+  {
+    id: 'act-009',
+    timestamp: '2026-09-01T09:00:00.000Z',
+    actorRole: 'ADMIN',
+    actorName: 'VESTIGE Grand Curator',
+    actorEmail: 'admin@vestige.internal',
+    actionType: 'ACCREDITATION_VERIFIED',
+    category: 'ACCREDITATION',
+    description: 'Accredited and approved Aegis Diagnostics Atelier trade credentials',
+    targetEntity: 'VendorProfile',
+    targetId: 'vnd-001',
+    details: 'Status updated to VERIFIED • Trade license KA-BLR-2025-9921 approved',
+    badge: 'ADMIN',
+    status: 'APPROVED',
+  },
+];
+
+export function logPlatformActivity(activity) {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    const list = JSON.parse(localStorage.getItem('vestige_platform_activities') || '[]');
+    const newEntry = {
+      id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      timestamp: new Date().toISOString(),
+      ...activity,
+    };
+    list.unshift(newEntry);
+    localStorage.setItem('vestige_platform_activities', JSON.stringify(list.slice(0, 100)));
+  } catch (e) {
+    console.warn('Could not log activity:', e);
+  }
+}
+
 

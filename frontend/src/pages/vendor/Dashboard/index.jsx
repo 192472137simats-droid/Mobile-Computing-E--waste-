@@ -14,6 +14,7 @@ import {
   ensurePrototypeDataSeeded,
   INITIAL_VENDOR_REPAIRS,
   INITIAL_VENDOR_RECYCLING,
+  logPlatformActivity,
 } from '../../../utils/prototypeSeed';
 
 const LOCAL_VENDOR_REPAIRS = 'vestige_vendor_repairs';
@@ -120,6 +121,21 @@ export function VendorDashboard() {
       `✓ Repair Job #${repairId.substring(0, 10)}: ${actionLabels[nextStatus] || nextStatus}`
     );
 
+    const targetJob = repairs.find((r) => r.id === repairId);
+    logPlatformActivity({
+      actorRole: 'VENDOR',
+      actorName: user?.vendorProfile?.businessName || 'Aegis Diagnostics Atelier',
+      actorEmail: user?.email || 'aegis@vestige.internal',
+      actionType: `REPAIR_${nextStatus}`,
+      category: 'REPAIR',
+      description: `Workshop updated repair job #${repairId.substring(0, 10)} to ${nextStatus}`,
+      targetEntity: 'RepairBooking',
+      targetId: repairId,
+      details: `${targetJob ? `${targetJob.brand || ''} ${targetJob.model || ''}` : 'Hardware repair'} • ${actionLabels[nextStatus] || nextStatus}`,
+      badge: 'VENDOR',
+      status: nextStatus,
+    });
+
     // Attempt backend sync
     try {
       await api.patch(`/repairs/${repairId}/status`, {
@@ -148,6 +164,21 @@ export function VendorDashboard() {
     setActionNotice(
       `✓ E-Waste Parcel #${requestId.substring(0, 10)}: ${actionLabels[nextStatus] || nextStatus}`
     );
+
+    const targetRec = recycling.find((r) => r.id === requestId);
+    logPlatformActivity({
+      actorRole: 'VENDOR',
+      actorName: user?.vendorProfile?.businessName || 'Aegis Diagnostics Atelier',
+      actorEmail: user?.email || 'aegis@vestige.internal',
+      actionType: `RECYCLING_${nextStatus}`,
+      category: 'RECYCLING',
+      description: `Workshop updated e-waste dispatch #${requestId.substring(0, 10)} to ${nextStatus}`,
+      targetEntity: 'RecyclingRequest',
+      targetId: requestId,
+      details: `${targetRec ? `${targetRec.brand || ''} ${targetRec.model || ''}` : 'E-waste item'} • ${actionLabels[nextStatus] || nextStatus}`,
+      badge: 'VENDOR',
+      status: nextStatus,
+    });
 
     // Attempt backend sync
     try {

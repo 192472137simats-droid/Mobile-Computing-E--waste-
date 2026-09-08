@@ -17,6 +17,7 @@ import {
   ensurePrototypeDataSeeded,
   INITIAL_USER_BOOKINGS,
   INITIAL_USER_RECYCLING,
+  logPlatformActivity,
 } from '../../../utils/prototypeSeed.js';
 
 const LOCAL_USER_BOOKINGS = 'vestige_user_bookings';
@@ -110,6 +111,21 @@ export function Bookings() {
     } catch (e) {
       console.warn('Could not persist paid booking:', e);
     }
+
+    // Log payment activity for Admin visibility
+    logPlatformActivity({
+      actorRole: 'USER',
+      actorName: 'Archival Patron (Self)',
+      actorEmail: 'user@vestige.internal',
+      actionType: 'PAYMENT_SETTLED',
+      category: 'PAYMENTS',
+      description: `Settled workshop repair invoice for ${selectedBookingForPayment.brand} ${selectedBookingForPayment.model}`,
+      targetEntity: 'PaymentTransaction',
+      targetId: receiptRef,
+      details: `Amount: ₹${selectedBookingForPayment.estimatedCost || 3500} • Order: ${receiptRef}`,
+      badge: 'USER',
+      status: 'SETTLED',
+    });
 
     setSelectedBookingForPayment(null);
     setActionMessage(

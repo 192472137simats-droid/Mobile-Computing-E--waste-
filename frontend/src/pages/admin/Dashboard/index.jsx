@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import PageShell from '../../../components/layout/PageShell/PageShell';
 import Container from '../../../components/layout/Container/Container';
 import LedgerCard from '../../../components/vintage/LedgerCard/LedgerCard';
@@ -20,6 +21,7 @@ import {
   INITIAL_ADMIN_KPIS,
   INITIAL_ADMIN_REGISTRATION_ACTIVITY,
   INITIAL_ADMIN_VENDORS,
+  INITIAL_PLATFORM_ACTIVITIES,
 } from '../../../utils/prototypeSeed';
 
 export function AdminDashboard() {
@@ -29,6 +31,7 @@ export function AdminDashboard() {
   const [regActivity, setRegActivity] = useState(null);
   const [range, setRange] = useState('6m');
   const [pendingVendors, setPendingVendors] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState('');
 
@@ -86,6 +89,13 @@ export function AdminDashboard() {
       } else {
         setPendingVendors(fallbackVendors);
       }
+
+      let fallbackActivities = INITIAL_PLATFORM_ACTIVITIES;
+      try {
+        const savedAct = localStorage.getItem('vestige_platform_activities');
+        if (savedAct) fallbackActivities = JSON.parse(savedAct);
+      } catch {}
+      setRecentActivities(fallbackActivities.slice(0, 6));
     } catch (err) {
       console.warn('Dashboard load error:', err);
     } finally {
@@ -357,6 +367,130 @@ export function AdminDashboard() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </LedgerCard>
+        </div>
+
+        {/* Live Patron & Vendor Activity Ledger */}
+        <div style={{ marginBottom: '2rem' }}>
+          <LedgerCard
+            variant="admin"
+            watermark="quill"
+            watermarkSize={130}
+            watermarkOpacity={0.06}
+            headerBadge={
+              <WaxSealBadge
+                variant="gold"
+                size="sm"
+                icon={<IconWrapper name="book" size={16} color="var(--vestige-espresso)" />}
+                label="LIVE FEED"
+              />
+            }
+            title="Live Patron & Vendor Activity Stream"
+            subtitle="Real-time telemetry across registered users, diagnostic submissions, workshop progressions, and logistics"
+          >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
+              <Link to="/admin/audit" style={{ textDecoration: 'none' }}>
+                <Button variant="ghost" size="sm" icon={<IconWrapper name="arrow-right" size={14} />}>
+                  Access Full Audit Ledger ({recentActivities.length}+ records) →
+                </Button>
+              </Link>
+            </div>
+
+            {loading ? (
+              <ArchivalSkeleton variant="table" rows={4} />
+            ) : recentActivities.length === 0 ? (
+              <ArchivalEmptyState
+                illustration="books"
+                title="No Platform Activities Recorded"
+                description="User diagnostics, repair workflows, and recycling pickups will stream here in real time."
+              />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {recentActivities.map((act) => {
+                  const isVendor = act.actorRole === 'VENDOR';
+                  const isAdmin = act.actorRole === 'ADMIN';
+                  const badgeColor = isAdmin
+                    ? 'var(--vestige-rust)'
+                    : isVendor
+                    ? 'var(--vestige-moss)'
+                    : 'var(--vestige-brass-dark)';
+                  const badgeBg = isAdmin
+                    ? 'rgba(131, 39, 21, 0.1)'
+                    : isVendor
+                    ? 'rgba(56, 85, 61, 0.1)'
+                    : 'rgba(168, 131, 74, 0.1)';
+
+                  return (
+                    <div
+                      key={act.id}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '0.75rem',
+                        padding: '0.85rem 1rem',
+                        border: '1px solid var(--vestige-parchment-border)',
+                        borderRadius: 'var(--radius-xs)',
+                        background: 'var(--vestige-parchment-light)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: '260px' }}>
+                        <span
+                          style={{
+                            fontSize: '0.72rem',
+                            padding: '2px 7px',
+                            background: badgeBg,
+                            color: badgeColor,
+                            border: `1px solid ${badgeColor}`,
+                            borderRadius: 'var(--radius-xs)',
+                            fontWeight: 'bold',
+                            fontFamily: 'var(--font-mono)',
+                          }}
+                        >
+                          {act.actorRole || 'USER'}
+                        </span>
+                        <div>
+                          <div style={{ fontWeight: 'bold', fontSize: '0.92rem', color: 'var(--vestige-espresso)' }}>
+                            {act.description || act.actionType}
+                          </div>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--vestige-ink-light)', marginTop: '2px' }}>
+                            <strong>{act.actorName}</strong> ({act.actorEmail}) &bull; {act.details || act.targetEntity}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <span
+                          style={{
+                            fontSize: '0.74rem',
+                            padding: '2px 6px',
+                            borderRadius: 'var(--radius-xs)',
+                            fontFamily: 'var(--font-mono)',
+                            fontWeight: 'bold',
+                            background: 'var(--vestige-parchment-white)',
+                            border: '1px solid var(--vestige-parchment-border)',
+                            color: 'var(--vestige-espresso)',
+                          }}
+                        >
+                          {act.category || 'EVENT'}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '0.78rem',
+                            color: 'var(--vestige-ink-light)',
+                            fontFamily: 'var(--font-mono)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {act.timestamp ? new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </LedgerCard>

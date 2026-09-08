@@ -12,6 +12,7 @@ import Divider from '../../../components/common/Divider/Divider';
 import IconWrapper from '../../../components/common/IconWrapper/IconWrapper';
 import deviceService from '../../../services/deviceService';
 import { useTranslation } from '../../../i18n/useTranslation';
+import { logPlatformActivity } from '../../../utils/prototypeSeed';
 import styles from './Assessment.module.css';
 
 const AVAILABLE_ISSUES = [
@@ -168,6 +169,21 @@ export function AssessmentPage() {
       });
       localStorage.setItem('vestige_admin_repairs', JSON.stringify(adminRepairs));
     } catch {}
+
+    // Log activity for Admin visibility
+    logPlatformActivity({
+      actorRole: 'USER',
+      actorName: 'Archival Patron (Self)',
+      actorEmail: 'user@vestige.internal',
+      actionType: 'REPAIR_BOOKED',
+      category: 'REPAIR',
+      description: `Booked repair for ${newBooking.brand} ${newBooking.model} (${newBooking.issueDescription})`,
+      targetEntity: 'RepairBooking',
+      targetId: newBooking.id,
+      details: `Quote: ₹${newBooking.estimatedCost} • Atelier: ${newBooking.vendorBusinessName}`,
+      badge: 'USER',
+      status: 'PENDING',
+    });
 
     navigate('/user/bookings', {
       state: {
