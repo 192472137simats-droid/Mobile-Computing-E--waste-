@@ -13,17 +13,20 @@ import recyclingService from '../../../services/recyclingService';
 import { useTranslation } from '../../../i18n/useTranslation';
 import styles from './Dashboard.module.css';
 
+import { ensurePrototypeDataSeeded } from '../../../utils/prototypeSeed.js';
+
 export function UserDashboard() {
   const { t } = useTranslation();
-  const [account, setAccount] = useState({ balance: 0, lifetimeEarned: 0 });
+  const [account, setAccount] = useState({ balance: 250, lifetimeEarned: 350 });
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
+        ensurePrototypeDataSeeded();
         const [accRes, recRes] = await Promise.all([
-          rewardService.getAccount().catch(() => ({ data: { balance: 0, lifetimeEarned: 0 } })),
+          rewardService.getAccount().catch(() => ({ data: { balance: 250, lifetimeEarned: 350 } })),
           recyclingService.getMyRecyclingRequests().catch(() => ({ data: [] })),
         ]);
         if (accRes && accRes.data) setAccount(accRes.data);
