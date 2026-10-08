@@ -6,7 +6,9 @@ VESTIGE is a web application that helps people decide whether to repair or recyc
 
 **Project support:** WhatsApp or call **+91 81256 43574**. The footer and floating support control use this number.
 
-> **Project status:** Local development and demonstration flows have been exercised. Production deployment, a live payment transaction, and real world environmental outcomes have not been verified. See [Current limitations](#current-limitations-and-next-steps).
+**Live Railway demo:** [web-production-5f08d.up.railway.app](https://web-production-5f08d.up.railway.app/)
+
+> **Project status:** The Railway site, PostgreSQL readiness, browser assets, direct page navigation, and administrator login were verified on 8 October 2026. Full cloud workflow and live payment testing remain. See [Current limitations](#current-limitations-and-next-steps).
 
 ## Contents
 
@@ -60,7 +62,7 @@ flowchart LR
   API --> PAY[Razorpay order and verification]
 ```
 
-The frontend is a React single page application. It sends JSON requests to a Java Spring Boot API. The API handles authentication, role and ownership checks, assessment, bookings, rewards, payments, and analytics. The `dev` profile uses an in-memory H2 database with sample accounts; the `prod` profile is configured for PostgreSQL, with schema migrations in `supabase/migrations`.
+The frontend is a React single page application. It sends JSON requests to a Java Spring Boot API. The API handles authentication, role and ownership checks, assessment, bookings, rewards, payments, and analytics. The `dev` profile uses an in-memory H2 database with sample accounts. The Railway demo bundles the React build and API into one container and stores data in Railway PostgreSQL. A separate Supabase schema is defined in `supabase/migrations`.
 
 ### What an assessment contains
 
@@ -160,7 +162,7 @@ The example files are [`backend/.env.example`](backend/.env.example) and [`front
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | Required for actual Razorpay checkout and server verification. |
 | `VITE_API_BASE_URL` | Browser visible API URL, including `/api`. |
 
-Keep secrets out of the frontend and Git. Apply `supabase/migrations` in order before starting against a new production database. See [deployment guidance](docs/operations/DEPLOYMENT_GUIDE.md) and [operations runbook](docs/operations/OPERATIONAL_RUNBOOK.md). Check provider settings against the current code before deploying; the guides are reference material, not proof of a live deployment.
+Keep secrets out of the frontend and Git. The Railway demo uses its own fresh PostgreSQL database and the `prod,railway` profiles with Hibernate schema creation. The separate Supabase deployment path requires the migrations in `supabase/migrations` to be applied in order. See [Railway deployment notes](docs/operations/RAILWAY_DEPLOYMENT.md), [other deployment guidance](docs/operations/DEPLOYMENT_GUIDE.md), and the [operations runbook](docs/operations/OPERATIONAL_RUNBOOK.md).
 
 ### Production configuration sequence
 
@@ -222,7 +224,8 @@ At the last local check on **8 October 2026**, 57 backend tests passed, the fron
 ## Current limitations and next steps
 
 - **Live payments:** Razorpay keys were unavailable for the local check. Checkout correctly reports a configuration error without them; a real order and callback still need sandbox or production credential testing.
-- **Production database/deployment:** The PostgreSQL migrations and production environment need to be applied and verified on the target services. The present verification used the H2 development profile.
+- **Cloud workflow:** The Railway web app and PostgreSQL are live, but complete user and vendor flows have not been exercised against this fresh cloud database. The local browser flow was verified using H2.
+- **Schema management:** The Railway demo currently uses Hibernate `ddl-auto=update`. Review and apply managed migrations before treating it as a long lived production system.
 - **Password recovery:** A self service reset flow is not implemented. Login pages state this explicitly.
 - **Environmental estimates:** Values are fixed category benchmarks in code. They should be calibrated against traceable data before being used as verified impact measurements.
 - **Vendor qualification and operations:** Real vendor certification, pickup logistics, and downstream recycling evidence require an operational process outside the current software demo.

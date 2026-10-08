@@ -10,8 +10,8 @@ function getBaseUrl() {
   const envUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
   let base = envUrl;
   
-  // If in production and no absolute URL is provided (e.g. empty or default '/api'), use production Render backend
-  if (!base || base === '/api') {
+  // An explicit /api supports a frontend bundled with the backend on one origin.
+  if (!base) {
     base = import.meta.env.PROD ? DEFAULT_PROD_API : '/api';
   }
 
