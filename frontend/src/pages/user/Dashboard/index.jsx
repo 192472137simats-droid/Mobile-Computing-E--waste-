@@ -13,26 +13,25 @@ import recyclingService from '../../../services/recyclingService';
 import { useTranslation } from '../../../i18n/useTranslation';
 import styles from './Dashboard.module.css';
 
-import { ensurePrototypeDataSeeded } from '../../../utils/prototypeSeed.js';
-
 export function UserDashboard() {
   const { t } = useTranslation();
-  const [account, setAccount] = useState({ balance: 250, lifetimeEarned: 350 });
+  const [account, setAccount] = useState({ balance: 0, lifetimeEarned: 0 });
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     async function fetchData() {
       try {
-        ensurePrototypeDataSeeded();
         const [accRes, recRes] = await Promise.all([
-          rewardService.getAccount().catch(() => ({ data: { balance: 250, lifetimeEarned: 350 } })),
-          recyclingService.getMyRecyclingRequests().catch(() => ({ data: [] })),
+          rewardService.getAccount(),
+          recyclingService.getMyRecyclingRequests(),
         ]);
         if (accRes && accRes.data) setAccount(accRes.data);
         if (recRes && recRes.data) setRequests(recRes.data);
       } catch (err) {
         console.error('Failed to load user dashboard data:', err);
+        setLoadError(err.message || 'Could not load your account.');
       } finally {
         setLoading(false);
       }
@@ -40,7 +39,9 @@ export function UserDashboard() {
     fetchData();
   }, []);
 
-  const activeRecycleCount = requests.filter((r) => r.status !== 'COMPLETED').length;
+  const activeRecycleCount = requests.filter((r) =>
+    !['COMPLETED', 'CANCELLED', 'REJECTED'].includes(r.status)
+  ).length;
 
   return (
     <PageShell>
@@ -53,6 +54,8 @@ export function UserDashboard() {
           >
             {t('nav.dashboard', 'Patron Archival Dashboard')}
           </VintageHeading>
+
+          {loadError && <p role="alert">{loadError}</p>}
 
           {/* Archival Information Metric Plates Grid */}
           {loading ? (

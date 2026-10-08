@@ -17,7 +17,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 @Component
-@Profile("!test")
+@Profile("dev")
 public class DataInitializationService implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataInitializationService.class);

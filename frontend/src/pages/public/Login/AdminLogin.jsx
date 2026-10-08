@@ -114,7 +114,7 @@ export function AdminLogin() {
             {forgotNotice && (
               <div className={styles.mockBanner} role="status">
                 <IconWrapper name="info" size={18} color="var(--vestige-gold-dark)" />
-                <p>Administrative key reset requests require institutional multi-factor authorization.</p>
+                <p>Contact the platform administrator for credential recovery. No reset request was sent.</p>
               </div>
             )}
 

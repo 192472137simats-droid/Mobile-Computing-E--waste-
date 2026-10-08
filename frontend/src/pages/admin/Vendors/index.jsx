@@ -9,7 +9,6 @@ import ArchivalEmptyState from '../../../components/vintage/ArchivalEmptyState/A
 import ConfirmModal from '../../../components/common/ConfirmModal/ConfirmModal';
 import apiClient from '../../../services/apiClient';
 
-import { ensurePrototypeDataSeeded, INITIAL_ADMIN_VENDORS } from '../../../utils/prototypeSeed';
 
 export function AdminVendorsPage() {
   const [vendors, setVendors] = useState([]);
@@ -31,27 +30,14 @@ export function AdminVendorsPage() {
   const loadVendors = async () => {
     setLoading(true);
     try {
-      ensurePrototypeDataSeeded();
-      let fallbackVendors = INITIAL_ADMIN_VENDORS;
-      try {
-        const saved = localStorage.getItem('vestige_admin_vendors');
-        if (saved) fallbackVendors = JSON.parse(saved);
-      } catch {}
-
-      const res = await apiClient.get('/api/admin/vendors').catch(() => null);
-      const serverVendors = res?.data?.data;
-      if (Array.isArray(serverVendors) && serverVendors.length > 0) {
-        setVendors(serverVendors);
-      } else {
-        setVendors(fallbackVendors);
-      }
+      const response = await apiClient.get('/api/admin/vendors');
+      setVendors(response.data || []);
     } catch (err) {
-      console.warn('Failed to load vendors:', err);
+      setNotice(err.message || 'Could not load records.');
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadVendors();
   }, []);
@@ -72,20 +58,12 @@ export function AdminVendorsPage() {
           await apiClient.patch(`/api/admin/vendors/${v.id}/verify`, {
             action,
             rejectionReason: isApproving ? null : 'Document verification requirements unfulfilled',
-          }).catch(() => {});
-        } catch {}
-
-        try {
-          const saved = JSON.parse(localStorage.getItem('vestige_admin_vendors') || '[]');
-          const source = saved.length > 0 ? saved : INITIAL_ADMIN_VENDORS;
-          const updated = source.map((item) =>
-            item.id === v.id ? { ...item, verificationStatus: isApproving ? 'VERIFIED' : 'REJECTED' } : item
-          );
-          localStorage.setItem('vestige_admin_vendors', JSON.stringify(updated));
-        } catch {}
-
-        setNotice(`Workshop partner ${v.businessName} ${isApproving ? 'APPROVED & VERIFIED' : 'REJECTED'}.`);
-        loadVendors();
+          });
+          await loadVendors();
+          setNotice(`Workshop partner ${v.businessName} ${isApproving ? 'APPROVED & VERIFIED' : 'REJECTED'}.`);
+        } catch (err) {
+          setNotice(err.message || 'Could not update vendor verification.');
+        }
       },
     });
   };

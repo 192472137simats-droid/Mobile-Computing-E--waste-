@@ -3,15 +3,25 @@ import paymentService from '../../services/paymentService.js';
 import useTranslation from '../../i18n/useTranslation';
 import styles from './RazorpayCheckoutModal.module.css';
 
+function loadRazorpay() {
+  if (window.Razorpay) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = resolve;
+    script.onerror = () => reject(new Error('Payment checkout could not be loaded. Please try again.'));
+    document.head.appendChild(script);
+  });
+}
+
 export function RazorpayCheckoutModal({ booking, onClose, onSuccess }) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('UPI'); // 'UPI' | 'CARD' | 'NETBANKING'
   const [transactionDetails, setTransactionDetails] = useState(null);
 
-  const amount = booking?.submission?.estimatedRepairCost || booking?.estimatedCost || 3500.0;
+  const amount = booking?.submission?.estimatedRepairCost || booking?.estimatedCost || 500;
   const brand = booking?.submission?.brand || booking?.brand || 'Electronic Device';
   const model = booking?.submission?.model || booking?.model || 'Hardware Unit';
   const workshop = booking?.vendor?.businessName || booking?.vendorBusinessName || 'Aegis Diagnostics Atelier';
@@ -21,15 +31,14 @@ export function RazorpayCheckoutModal({ booking, onClose, onSuccess }) {
       setLoading(true);
       setError(null);
 
-      // 1. Request order creation from backend or archival sandbox
-      const orderRes = await paymentService.createRepairPaymentOrder(booking?.id || 'archival-job', amount);
+      await loadRazorpay();
+      const orderRes = await paymentService.createRepairPaymentOrder(booking?.id);
       const orderData = orderRes?.data || orderRes;
 
-      // 2. Check if Razorpay script is loaded in browser
-      if (window.Razorpay && orderData?.razorpayKeyId) {
+      if (window.Razorpay && orderData?.razorpayKeyId && orderData?.providerOrderId) {
         const options = {
           key: orderData.razorpayKeyId,
-          amount: Math.round(Number(amount) * 100),
+          amount: Math.round(Number(orderData.amount) * 100),
           currency: orderData.currency || 'INR',
           name: orderData.businessName || 'VESTIGE Restoration Atelier',
           description: orderData.description || `Restoration Fee for ${brand} ${model}`,
@@ -58,6 +67,7 @@ export function RazorpayCheckoutModal({ booking, onClose, onSuccess }) {
               }, 1500);
             } catch (vErr) {
               setError(vErr.response?.data?.message || 'Signature verification failed.');
+              setLoading(false);
             }
           },
           modal: {
@@ -70,22 +80,7 @@ export function RazorpayCheckoutModal({ booking, onClose, onSuccess }) {
         const rzp = new window.Razorpay(options);
         rzp.open();
       } else {
-        // Instant Sandbox/Prototype Verification Mode
-        const mockPaymentId = `pay_rzp_mock_${Date.now()}`;
-        const verifyRes = await paymentService.verifyPaymentSignature({
-          razorpayOrderId: orderData?.providerOrderId || `order_${Date.now()}`,
-          razorpayPaymentId: mockPaymentId,
-          razorpaySignature: 'mock_signature_approved',
-          bookingId: booking?.id,
-          amount,
-        });
-
-        setTransactionDetails(verifyRes?.data);
-        setSuccess(true);
-        setTimeout(() => {
-          if (onSuccess) onSuccess(verifyRes?.data);
-          if (onClose) onClose();
-        }, 1500);
+        throw new Error('Payment checkout is not available. Please try again later.');
       }
     } catch (err) {
       console.error('Payment failure:', err);
@@ -131,40 +126,6 @@ export function RazorpayCheckoutModal({ booking, onClose, onSuccess }) {
           <div className={styles.billTotal}>
             <span>{t('payment.amountPayable', 'Amount Payable')}:</span>
             <span style={{ color: 'var(--vestige-espresso)' }}>₹{Number(amount).toFixed(2)}</span>
-          </div>
-        </div>
-
-        {/* Payment Instrument Tabs */}
-        <div style={{ marginBottom: '1.25rem' }}>
-          <span style={{ fontSize: '0.78rem', color: 'var(--vestige-ink-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Select Payment Method (Sandbox / Live):
-          </span>
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
-            {[
-              { id: 'UPI', label: '📱 UPI (GPay / PhonePe)' },
-              { id: 'CARD', label: '💳 Credit / Debit Card' },
-              { id: 'NETBANKING', label: '🏦 NetBanking' },
-            ].map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => setPaymentMethod(m.id)}
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  fontSize: '0.75rem',
-                  fontFamily: 'var(--font-serif)',
-                  border: paymentMethod === m.id ? '1.5px solid var(--vestige-espresso)' : '1px solid var(--vestige-parchment-border)',
-                  background: paymentMethod === m.id ? 'var(--vestige-espresso)' : 'var(--vestige-parchment-light)',
-                  color: paymentMethod === m.id ? 'var(--vestige-ivory)' : 'var(--vestige-ink)',
-                  borderRadius: 'var(--radius-xs)',
-                  cursor: 'pointer',
-                  fontWeight: paymentMethod === m.id ? 'bold' : 'normal',
-                }}
-              >
-                {m.label}
-              </button>
-            ))}
           </div>
         </div>
 

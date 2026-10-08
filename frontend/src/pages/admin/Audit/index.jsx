@@ -8,42 +8,27 @@ import AdminNav from '../../../components/admin/AdminNav';
 import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/ArchivalSkeleton';
 import ArchivalEmptyState from '../../../components/vintage/ArchivalEmptyState/ArchivalEmptyState';
 import apiClient from '../../../services/apiClient';
-import {
-  ensurePrototypeDataSeeded,
-  INITIAL_PLATFORM_ACTIVITIES,
-} from '../../../utils/prototypeSeed';
 
 export function AdminAuditPage() {
   const [actions, setActions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
 
   const loadActions = async () => {
     setLoading(true);
+    setLoadError('');
     try {
-      ensurePrototypeDataSeeded();
-      let fallbackActivities = INITIAL_PLATFORM_ACTIVITIES;
-      try {
-        const saved = localStorage.getItem('vestige_platform_activities');
-        if (saved) fallbackActivities = JSON.parse(saved);
-      } catch {}
-
-      const res = await apiClient.get('/api/admin/actions').catch(() => null);
-      const serverActions = res?.data?.data;
-      if (Array.isArray(serverActions) && serverActions.length > 0) {
-        setActions(serverActions);
-      } else {
-        setActions(fallbackActivities);
-      }
+      const response = await apiClient.get('/api/admin/actions');
+      setActions(response.data || []);
     } catch (err) {
-      console.warn('Failed to load audit logs:', err);
+      setLoadError(err.message || 'Could not load records.');
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadActions();
   }, []);
@@ -105,6 +90,7 @@ export function AdminAuditPage() {
         </div>
 
         <AdminNav />
+        {loadError && <p role="alert">{loadError}</p>}
 
         <LedgerCard
           variant="admin"

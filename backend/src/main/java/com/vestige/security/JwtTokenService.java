@@ -1,5 +1,6 @@
 package com.vestige.security;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vestige.model.User;
 import org.slf4j.Logger;
@@ -26,10 +27,40 @@ public class JwtTokenService {
 
     public JwtTokenService(
             ObjectMapper objectMapper,
-            @Value("${app.jwt.secret:vestige-archival-platform-cryptographic-security-key-2026-circular-economy}") String jwtSecret
+            @Value("${app.jwt.secret}") String jwtSecret
     ) {
+        if (jwtSecret == null || jwtSecret.length() < 32) {
+            throw new IllegalArgumentException("JWT_SECRET must contain at least 32 characters");
+        }
         this.objectMapper = objectMapper;
         this.jwtSecret = jwtSecret;
+    }
+
+    public JsonNode verifyToken(String token) {
+        try {
+            String[] parts = token.split("\\.", -1);
+            if (parts.length != 3 || parts[2].isBlank()) {
+                throw new IllegalArgumentException("Invalid token format");
+            }
+            JsonNode header = objectMapper.readTree(Base64.getUrlDecoder().decode(parts[0]));
+            if (!"HS256".equals(header.path("alg").asText())) {
+                throw new IllegalArgumentException("Unsupported token algorithm");
+            }
+            byte[] expected = Base64.getUrlDecoder().decode(sign(parts[0] + "." + parts[1]));
+            byte[] actual = Base64.getUrlDecoder().decode(parts[2]);
+            if (!MessageDigest.isEqual(expected, actual)) {
+                throw new IllegalArgumentException("Invalid token signature");
+            }
+            JsonNode payload = objectMapper.readTree(Base64.getUrlDecoder().decode(parts[1]));
+            if (!payload.path("exp").isNumber()
+                    || payload.path("exp").asLong() <= System.currentTimeMillis() / 1000
+                    || !payload.path("sub").isTextual()) {
+                throw new IllegalArgumentException("Expired or incomplete token");
+            }
+            return payload;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid authentication token", e);
+        }
     }
 
     public String generateToken(User user) {

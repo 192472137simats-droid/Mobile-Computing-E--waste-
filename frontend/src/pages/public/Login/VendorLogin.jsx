@@ -108,7 +108,7 @@ export function VendorLogin() {
             {forgotNotice && (
               <div className={styles.mockBanner} role="status">
                 <IconWrapper name="info" size={18} color="var(--vestige-gold-dark)" />
-                <p>Workshop password recovery dispatch sent. Check your registered business email.</p>
+                <p>Automated workshop password recovery is not available yet. Contact VESTIGE support to regain access.</p>
               </div>
             )}
 

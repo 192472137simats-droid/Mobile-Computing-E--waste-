@@ -29,7 +29,9 @@ export function FormField({
         ? React.cloneElement(children, {
             id,
             required,
-            hasError: !!error,
+            ...(typeof children.type === 'string'
+              ? { 'aria-invalid': !!error }
+              : { hasError: !!error }),
             'aria-describedby': describedBy,
           })
         : children}

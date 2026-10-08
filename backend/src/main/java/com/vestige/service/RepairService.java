@@ -49,28 +49,12 @@ public class RepairService {
 
     @Transactional
     public RepairBookingResponse createBooking(RepairBookingCreateDTO dto) {
-        User user = null;
-
-        Optional<UserPrincipal> currentPrincipal = SecurityUtils.getCurrentUserPrincipal();
-        if (currentPrincipal.isPresent()) {
-            SecurityUtils.assertActive();
-            UUID currentUserId = currentPrincipal.get().getId();
-
-            if (currentPrincipal.get().getRole() == UserRole.ADMIN && dto.getUserId() != null) {
-                user = userRepository.findById(dto.getUserId()).orElse(null);
-            } else {
-                user = userRepository.findById(currentUserId).orElse(null);
-            }
-        } else if (dto.getUserId() != null) {
-            user = userRepository.findById(dto.getUserId()).orElse(null);
-        }
-
-        if (user == null) {
-            user = userRepository.findByEmail("user@vestige.internal")
-                    .orElseGet(() -> userRepository.save(
-                            new User("Archival Patron", "user@vestige.internal", "[SUPABASE_AUTH_MANAGED]", "+919876543210", UserRole.USER)
-                    ));
-        }
+        SecurityUtils.assertActive();
+        UserPrincipal principal = SecurityUtils.requireCurrentUser();
+        UUID userId = principal.getRole() == UserRole.ADMIN && dto.getUserId() != null
+                ? dto.getUserId() : principal.getId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
         VendorProfile vendor = vendorProfileRepository.findById(dto.getVendorId())
                 .orElseThrow(() -> new IllegalArgumentException("Craftsman workshop not found: " + dto.getVendorId()));
@@ -82,8 +66,8 @@ public class RepairService {
                 .orElseThrow(() -> new IllegalArgumentException("Device submission not found: " + dto.getSubmissionId()));
 
         // Ownership assertion on submission
-        if (submission.getUser() != null) {
-            SecurityUtils.assertOwnershipOrAdmin(submission.getUser().getId());
+        if (submission.getUser() == null || !submission.getUser().getId().equals(user.getId())) {
+            throw new ForbiddenException("Device submission does not belong to this user");
         }
 
         // Check if an active booking already exists for this submission
@@ -127,20 +111,18 @@ public class RepairService {
         // Enforce state machine transition validity
         stateMachine.validateTransition(prevStatus, newStatus);
 
-        User actor = null;
-        Optional<UserPrincipal> currentPrincipal = SecurityUtils.getCurrentUserPrincipal();
-        if (currentPrincipal.isPresent()) {
-            SecurityUtils.assertActive();
-            UserPrincipal principal = currentPrincipal.get();
-            actor = userRepository.findById(principal.getId()).orElse(null);
+        SecurityUtils.assertActive();
+        UserPrincipal principal = SecurityUtils.requireCurrentUser();
+        User actor = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Actor not found"));
 
-            if (principal.getRole() == UserRole.VENDOR) {
+        if (principal.getRole() == UserRole.VENDOR) {
                 // Verify vendor owns this assignment and is verified
                 if (!booking.getVendor().getUserId().equals(principal.getId())) {
                     throw new ForbiddenException("Access denied: You are not the assigned craftsman for this repair booking");
                 }
                 SecurityUtils.assertVendorVerified(booking.getVendor());
-            } else if (principal.getRole() == UserRole.USER) {
+        } else if (principal.getRole() == UserRole.USER) {
                 // User can only cancel their own pending/accepted booking
                 if (!booking.getUser().getId().equals(principal.getId())) {
                     throw new ForbiddenException("Access denied: You are not the owner of this booking");
@@ -148,11 +130,6 @@ public class RepairService {
                 if (newStatus != BookingStatusType.CANCELLED) {
                     throw new ForbiddenException("Device owners may only cancel a pending or accepted booking");
                 }
-            }
-        }
-
-        if (actor == null) {
-            actor = booking.getUser();
         }
 
         booking.setStatus(newStatus);
@@ -246,14 +223,12 @@ public class RepairService {
         RepairBooking booking = repairBookingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Repair booking not found: " + id));
 
-        Optional<UserPrincipal> currentPrincipal = SecurityUtils.getCurrentUserPrincipal();
-        if (currentPrincipal.isPresent()) {
-            UserPrincipal principal = currentPrincipal.get();
-            if (principal.getRole() != UserRole.ADMIN
-                    && !booking.getUser().getId().equals(principal.getId())
-                    && !booking.getVendor().getUserId().equals(principal.getId())) {
-                throw new ForbiddenException("Access denied: You are not authorized to view this repair booking");
-            }
+        UserPrincipal principal = SecurityUtils.requireCurrentUser();
+        SecurityUtils.assertActive();
+        if (principal.getRole() != UserRole.ADMIN
+                && !booking.getUser().getId().equals(principal.getId())
+                && !booking.getVendor().getUserId().equals(principal.getId())) {
+            throw new ForbiddenException("Access denied: You are not authorized to view this repair booking");
         }
 
         return mapToResponse(booking);

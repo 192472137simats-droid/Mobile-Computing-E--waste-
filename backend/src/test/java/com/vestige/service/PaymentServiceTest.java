@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
@@ -23,8 +24,15 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.util.HexFormat;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -33,6 +41,9 @@ public class PaymentServiceTest {
 
     @Autowired
     private PaymentService paymentService;
+
+    @MockBean
+    private RazorpayGateway razorpayGateway;
 
     @Autowired
     private PaymentRepository paymentRepository;
@@ -58,6 +69,8 @@ public class PaymentServiceTest {
 
     @BeforeEach
     void setUp() {
+        when(razorpayGateway.createOrder(any(BigDecimal.class), anyString()))
+                .thenAnswer(invocation -> "order_" + UUID.randomUUID().toString().replace("-", ""));
         testUser = userRepository.save(new User("Payment Patron", "patron.pay@example.com", "hash", "+919111111111", UserRole.USER));
         otherUser = userRepository.save(new User("Other Patron", "other.patron@example.com", "hash", "+919222222222", UserRole.USER));
         adminUser = userRepository.save(new User("System Admin", "admin.pay@example.com", "hash", "+919333333333", UserRole.ADMIN));
@@ -105,6 +118,16 @@ public class PaymentServiceTest {
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
+    private String signatureFor(String orderId, String paymentId) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec("rzp_secret_placeholder".getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            return HexFormat.of().formatHex(mac.doFinal((orderId + "|" + paymentId).getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
+    }
+
     @Test
     void testCreateRepairPaymentOrder_Success() {
         authenticateAs(testUser);
@@ -136,11 +159,12 @@ public class PaymentServiceTest {
     void testVerifyPaymentSignature_Success() {
         authenticateAs(testUser);
         PaymentOrderResponse order = paymentService.createRepairPaymentOrder(testBooking.getId());
+        String paymentId = "pay_test" + UUID.randomUUID().toString().substring(0, 8);
 
         PaymentVerifyRequest verifyReq = new PaymentVerifyRequest(
                 order.getProviderOrderId(),
-                "pay_test_" + UUID.randomUUID().toString().substring(0, 8),
-                "mock_signature_test"
+                paymentId,
+                signatureFor(order.getProviderOrderId(), paymentId)
         );
 
         PaymentSummaryResponse verified = paymentService.verifyPaymentSignature(verifyReq);
@@ -149,6 +173,18 @@ public class PaymentServiceTest {
         assertEquals(PaymentStatusType.SUCCESS, verified.getStatus());
         assertEquals(order.getProviderOrderId(), verified.getProviderOrderId());
         assertNotNull(verified.getProviderPaymentId());
+    }
+
+    @Test
+    void testCreateRepairPaymentOrder_RejectsAlreadyPaidBooking() {
+        authenticateAs(testUser);
+        PaymentOrderResponse order = paymentService.createRepairPaymentOrder(testBooking.getId());
+        String paymentId = "pay_test" + UUID.randomUUID().toString().substring(0, 8);
+        paymentService.verifyPaymentSignature(new PaymentVerifyRequest(
+                order.getProviderOrderId(), paymentId, signatureFor(order.getProviderOrderId(), paymentId)));
+
+        assertThrows(IllegalStateException.class,
+                () -> paymentService.createRepairPaymentOrder(testBooking.getId()));
     }
 
     @Test
@@ -168,7 +204,7 @@ public class PaymentServiceTest {
 
         Payment payment = paymentRepository.findByProviderOrderId(order.getProviderOrderId()).orElse(null);
         assertNotNull(payment);
-        assertEquals(PaymentStatusType.FAILED, payment.getStatus());
+        assertEquals(PaymentStatusType.PENDING, payment.getStatus());
     }
 
     @Test
@@ -186,7 +222,8 @@ public class PaymentServiceTest {
     void testGetAdminPaymentMetrics() {
         authenticateAs(testUser);
         PaymentOrderResponse order = paymentService.createRepairPaymentOrder(testBooking.getId());
-        paymentService.verifyPaymentSignature(new PaymentVerifyRequest(order.getProviderOrderId(), "pay_123", "mock_signature"));
+        paymentService.verifyPaymentSignature(new PaymentVerifyRequest(
+                order.getProviderOrderId(), "pay_123", signatureFor(order.getProviderOrderId(), "pay_123")));
 
         authenticateAs(adminUser);
         PaymentAdminMetricsDTO metrics = paymentService.getAdminPaymentMetrics();

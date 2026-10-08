@@ -5,47 +5,24 @@ import LedgerCard from '../../../components/vintage/LedgerCard/LedgerCard';
 import AdminNav from '../../../components/admin/AdminNav';
 import apiClient from '../../../services/apiClient';
 
-import { ensurePrototypeDataSeeded, INITIAL_ADMIN_REWARDS } from '../../../utils/prototypeSeed';
 
 export function AdminRewardsPage() {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   const loadRewards = async () => {
     setLoading(true);
+    setLoadError('');
     try {
-      ensurePrototypeDataSeeded();
-      let fallbackRewards = INITIAL_ADMIN_REWARDS;
-      try {
-        const saved = localStorage.getItem('vestige_admin_rewards');
-        const userRew = localStorage.getItem('vestige_reward_account');
-        const adminList = saved ? JSON.parse(saved) : INITIAL_ADMIN_REWARDS;
-        if (userRew) {
-          const uParsed = JSON.parse(userRew);
-          const patronAcc = adminList.find((a) => a.userEmail === 'user@vestige.internal');
-          if (patronAcc) {
-            patronAcc.balance = uParsed.balance ?? patronAcc.balance;
-            patronAcc.lifetimeEarned = uParsed.lifetimeEarned ?? patronAcc.lifetimeEarned;
-            patronAcc.lifetimeRedeemed = uParsed.lifetimeRedeemed ?? patronAcc.lifetimeRedeemed;
-          }
-        }
-        fallbackRewards = adminList;
-      } catch {}
-
-      const res = await apiClient.get('/api/admin/rewards').catch(() => null);
-      const serverRewards = res?.data?.data;
-      if (Array.isArray(serverRewards) && serverRewards.length > 0) {
-        setAccounts(serverRewards);
-      } else {
-        setAccounts(fallbackRewards);
-      }
+      const response = await apiClient.get('/api/admin/rewards');
+      setAccounts(response.data || []);
     } catch (err) {
-      console.warn('Failed to load reward accounts:', err);
+      setLoadError(err.message || 'Could not load records.');
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadRewards();
   }, []);
@@ -63,6 +40,7 @@ export function AdminRewardsPage() {
         </div>
 
         <AdminNav />
+        {loadError && <p role="alert">{loadError}</p>}
 
         <LedgerCard
           variant="admin"

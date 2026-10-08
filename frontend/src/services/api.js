@@ -36,7 +36,14 @@ const inFlightRequests = new Map();
 export async function apiClient(endpoint, options = {}) {
   const baseUrl = getBaseUrl();
   const cleanEndpoint = endpoint.replace(/^\/api\/?/, '/').replace(/^\/?/, '/');
-  const url = `${baseUrl}${cleanEndpoint}`;
+  const { params, ...fetchOptions } = options;
+  const query = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') query.append(key, String(value));
+    });
+  }
+  const url = `${baseUrl}${cleanEndpoint}${query.size ? `${cleanEndpoint.includes('?') ? '&' : '?'}${query}` : ''}`;
   
   const token = localStorage.getItem(TOKEN_KEY);
 
@@ -44,18 +51,18 @@ export async function apiClient(endpoint, options = {}) {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(options.headers || {}),
+    ...(fetchOptions.headers || {}),
   };
 
   // 15-second request timeout to prevent hanging pending states
   const controller = new AbortController();
-  const timeoutMs = options.timeout || 15000;
+  const timeoutMs = fetchOptions.timeout || 15000;
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   const config = {
-    ...options,
+    ...fetchOptions,
     headers,
-    signal: options.signal || controller.signal,
+    signal: fetchOptions.signal || controller.signal,
   };
 
   const method = (config.method || 'GET').toUpperCase();

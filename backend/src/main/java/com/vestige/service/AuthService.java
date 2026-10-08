@@ -73,8 +73,7 @@ public class AuthService {
         User user = userRepository.findByEmail(cleanEmail)
                 .orElseThrow(() -> new UnauthorizedException("Invalid login credentials. Please check your email and password."));
 
-        boolean matches = passwordEncoder.matches(request.getPassword(), user.getPasswordHash())
-                || request.getPassword().equals(user.getPasswordHash());
+        boolean matches = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
 
         if (!matches) {
             throw new UnauthorizedException("Invalid login credentials. Please check your email and password.");

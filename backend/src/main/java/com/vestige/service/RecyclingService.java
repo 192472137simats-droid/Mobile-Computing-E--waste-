@@ -48,28 +48,12 @@ public class RecyclingService {
 
     @Transactional
     public RecyclingRequestResponse createRequest(RecyclingRequestCreateDTO dto) {
-        User user = null;
-
-        Optional<UserPrincipal> currentPrincipal = SecurityUtils.getCurrentUserPrincipal();
-        if (currentPrincipal.isPresent()) {
-            SecurityUtils.assertActive();
-            UUID currentUserId = currentPrincipal.get().getId();
-
-            if (currentPrincipal.get().getRole() == UserRole.ADMIN && dto.getUserId() != null) {
-                user = userRepository.findById(dto.getUserId()).orElse(null);
-            } else {
-                user = userRepository.findById(currentUserId).orElse(null);
-            }
-        } else if (dto.getUserId() != null) {
-            user = userRepository.findById(dto.getUserId()).orElse(null);
-        }
-
-        if (user == null) {
-            user = userRepository.findByEmail("user@vestige.internal")
-                    .orElseGet(() -> userRepository.save(
-                            new User("Archival Patron", "user@vestige.internal", "[SUPABASE_AUTH_MANAGED]", "+919876543210", UserRole.USER)
-                    ));
-        }
+        SecurityUtils.assertActive();
+        UserPrincipal principal = SecurityUtils.requireCurrentUser();
+        UUID userId = principal.getRole() == UserRole.ADMIN && dto.getUserId() != null
+                ? dto.getUserId() : principal.getId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
         VendorProfile vendor = vendorProfileRepository.findById(dto.getVendorId())
                 .orElseThrow(() -> new IllegalArgumentException("Recycling partner/vendor not found: " + dto.getVendorId()));
@@ -79,7 +63,11 @@ public class RecyclingService {
 
         DeviceSubmission submission = null;
         if (dto.getSubmissionId() != null) {
-            submission = submissionRepository.findById(dto.getSubmissionId()).orElse(null);
+            submission = submissionRepository.findById(dto.getSubmissionId())
+                    .orElseThrow(() -> new IllegalArgumentException("Device submission not found: " + dto.getSubmissionId()));
+            if (!submission.getUser().getId().equals(user.getId())) {
+                throw new ForbiddenException("Device submission does not belong to this user");
+            }
         }
 
         if (submission == null) {
@@ -132,18 +120,16 @@ public class RecyclingService {
         RecyclingRequest request = recyclingRequestRepository.findById(requestId)
                 .orElseThrow(() -> new IllegalArgumentException("Recycling request not found: " + requestId));
 
-        Optional<UserPrincipal> currentPrincipal = SecurityUtils.getCurrentUserPrincipal();
-        if (currentPrincipal.isPresent()) {
-            SecurityUtils.assertActive();
-            UserPrincipal principal = currentPrincipal.get();
+        SecurityUtils.assertActive();
+        UserPrincipal principal = SecurityUtils.requireCurrentUser();
 
-            if (principal.getRole() == UserRole.VENDOR) {
+        if (principal.getRole() == UserRole.VENDOR) {
                 // Verify vendor owns this assignment and is verified
                 if (!request.getVendor().getUserId().equals(principal.getId())) {
                     throw new ForbiddenException("Access denied: You are not the assigned vendor for this collection");
                 }
                 SecurityUtils.assertVendorVerified(request.getVendor());
-            } else if (principal.getRole() == UserRole.USER) {
+        } else if (principal.getRole() == UserRole.USER) {
                 // User can only cancel their own pending request
                 if (!request.getUser().getId().equals(principal.getId())) {
                     throw new ForbiddenException("Access denied: You are not the owner of this request");
@@ -151,7 +137,9 @@ public class RecyclingService {
                 if (dto.getStatus() != RecyclingStatusType.CANCELLED) {
                     throw new ForbiddenException("Device owners may only cancel a pending collection request");
                 }
-            }
+                if (request.getStatus() != RecyclingStatusType.PENDING) {
+                    throw new ForbiddenException("Only pending collections can be cancelled by the owner");
+                }
         }
 
         RecyclingStatusType prevStatus = request.getStatus();
@@ -164,9 +152,7 @@ public class RecyclingService {
 
         // Award reward points upon COMPLETED transition
         if (newStatus == RecyclingStatusType.COMPLETED && prevStatus != RecyclingStatusType.COMPLETED) {
-            int points = (dto.getPointsToAward() != null && dto.getPointsToAward() > 0)
-                    ? dto.getPointsToAward()
-                    : (50 * Math.max(1, request.getDeviceCount()));
+            int points = 50 * Math.max(1, request.getDeviceCount());
 
             request.setPointsAwarded(points);
 
@@ -184,13 +170,8 @@ public class RecyclingService {
         RecyclingRequest updated = recyclingRequestRepository.save(request);
 
         // Record history
-        User actor = null;
-        if (dto.getChangedByUserId() != null) {
-            actor = userRepository.findById(dto.getChangedByUserId()).orElse(null);
-        }
-        if (actor == null) {
-            actor = request.getUser();
-        }
+        User actor = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Actor not found"));
 
         RecyclingStatusHistory history = new RecyclingStatusHistory(
                 updated,
@@ -254,14 +235,12 @@ public class RecyclingService {
         RecyclingRequest req = recyclingRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Recycling request not found: " + id));
 
-        Optional<UserPrincipal> currentPrincipal = SecurityUtils.getCurrentUserPrincipal();
-        if (currentPrincipal.isPresent()) {
-            UserPrincipal principal = currentPrincipal.get();
-            if (principal.getRole() != UserRole.ADMIN
-                    && !req.getUser().getId().equals(principal.getId())
-                    && !req.getVendor().getUserId().equals(principal.getId())) {
-                throw new ForbiddenException("Access denied: You are not authorized to view this request");
-            }
+        UserPrincipal principal = SecurityUtils.requireCurrentUser();
+        SecurityUtils.assertActive();
+        if (principal.getRole() != UserRole.ADMIN
+                && !req.getUser().getId().equals(principal.getId())
+                && !req.getVendor().getUserId().equals(principal.getId())) {
+            throw new ForbiddenException("Access denied: You are not authorized to view this request");
         }
 
         return mapToResponse(req);

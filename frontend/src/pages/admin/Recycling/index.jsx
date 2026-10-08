@@ -7,57 +7,26 @@ import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/Archi
 import ArchivalEmptyState from '../../../components/vintage/ArchivalEmptyState/ArchivalEmptyState';
 import apiClient from '../../../services/apiClient';
 
-import { ensurePrototypeDataSeeded, INITIAL_ADMIN_RECYCLING } from '../../../utils/prototypeSeed';
 
 export function AdminRecyclingPage() {
   const [recycling, setRecycling] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
   const loadRecycling = async () => {
     setLoading(true);
+    setLoadError('');
     try {
-      ensurePrototypeDataSeeded();
-      let fallbackRecycling = INITIAL_ADMIN_RECYCLING;
-      try {
-        const saved = localStorage.getItem('vestige_admin_recycling');
-        const userRec = localStorage.getItem('vestige_recycling_requests');
-        const adminList = saved ? JSON.parse(saved) : INITIAL_ADMIN_RECYCLING;
-        const patronList = userRec ? JSON.parse(userRec) : [];
-        const existingIds = new Set(adminList.map((x) => x.id));
-        const formattedPatronList = patronList
-          .filter((p) => !existingIds.has(p.id))
-          .map((p) => ({
-            id: p.id,
-            userFullName: p.userFullName || 'Archival Patron',
-            userEmail: p.userEmail || 'user@vestige.internal',
-            brand: p.brand || 'Electronics',
-            model: p.model || 'Parcel',
-            deviceType: p.deviceType || 'SMARTPHONE',
-            deviceCount: p.deviceCount || 1,
-            pickupAddress: p.pickupAddress || 'Indiranagar, Bengaluru',
-            status: p.status || 'PENDING',
-            pickupDate: p.pickupDate || new Date().toISOString().split('T')[0],
-            createdAt: p.createdAt || new Date().toISOString(),
-          }));
-        fallbackRecycling = [...formattedPatronList, ...adminList];
-      } catch {}
-
-      const res = await apiClient.get('/api/admin/recycling').catch(() => null);
-      const serverRec = res?.data?.data;
-      if (Array.isArray(serverRec) && serverRec.length > 0) {
-        setRecycling(serverRec);
-      } else {
-        setRecycling(fallbackRecycling);
-      }
+      const response = await apiClient.get('/api/admin/recycling');
+      setRecycling(response.data || []);
     } catch (err) {
-      console.warn('Failed to load recycling records:', err);
+      setLoadError(err.message || 'Could not load records.');
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadRecycling();
   }, []);
@@ -67,8 +36,8 @@ export function AdminRecyclingPage() {
     const matchesSearch =
       !searchQuery.trim() ||
       (r.userFullName && r.userFullName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (r.brand && r.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (r.model && r.model.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (r.deviceBrand && r.deviceBrand.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (r.deviceModel && r.deviceModel.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (r.pickupAddress && r.pickupAddress.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesStatus && matchesSearch;
   });
@@ -86,6 +55,7 @@ export function AdminRecyclingPage() {
         </div>
 
         <AdminNav />
+        {loadError && <p role="alert">{loadError}</p>}
 
         <LedgerCard
           variant="admin"
@@ -179,8 +149,8 @@ export function AdminRecyclingPage() {
                         <div style={{ fontSize: '0.78rem', color: 'var(--vestige-ink-light)' }}>{r.userEmail}</div>
                       </td>
                       <td style={{ padding: '0.75rem 0.6rem' }}>
-                        <div style={{ fontWeight: 'bold' }}>{r.brand} {r.model}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--vestige-ink-light)', fontFamily: 'var(--font-mono)' }}>{r.deviceType}</div>
+                        <div style={{ fontWeight: 'bold' }}>{r.deviceBrand} {r.deviceModel}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--vestige-ink-light)', fontFamily: 'var(--font-mono)' }}>{r.deviceCategory}</div>
                       </td>
                       <td style={{ padding: '0.75rem 0.6rem', fontWeight: 'bold', color: 'var(--vestige-olive)', fontFamily: 'var(--font-serif)' }}>
                         {r.deviceCount} {r.deviceCount === 1 ? 'Unit' : 'Units'}

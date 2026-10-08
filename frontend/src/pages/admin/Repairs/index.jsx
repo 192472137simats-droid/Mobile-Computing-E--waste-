@@ -7,56 +7,26 @@ import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/Archi
 import ArchivalEmptyState from '../../../components/vintage/ArchivalEmptyState/ArchivalEmptyState';
 import apiClient from '../../../services/apiClient';
 
-import { ensurePrototypeDataSeeded, INITIAL_ADMIN_REPAIRS } from '../../../utils/prototypeSeed';
 
 export function AdminRepairsPage() {
   const [repairs, setRepairs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
   const loadRepairs = async () => {
     setLoading(true);
+    setLoadError('');
     try {
-      ensurePrototypeDataSeeded();
-      let fallbackRepairs = INITIAL_ADMIN_REPAIRS;
-      try {
-        const saved = localStorage.getItem('vestige_admin_repairs');
-        const userBk = localStorage.getItem('vestige_user_bookings');
-        const adminList = saved ? JSON.parse(saved) : INITIAL_ADMIN_REPAIRS;
-        const patronList = userBk ? JSON.parse(userBk) : [];
-        const existingIds = new Set(adminList.map((x) => x.id));
-        const formattedPatronList = patronList
-          .filter((p) => !existingIds.has(p.id))
-          .map((p) => ({
-            id: p.id,
-            userFullName: p.userFullName || 'Archival Patron',
-            userEmail: p.userEmail || 'user@vestige.internal',
-            brand: p.brand || 'Electronics',
-            model: p.model || 'Device',
-            deviceType: p.deviceType || 'SMARTPHONE',
-            vendorBusinessName: p.vendorBusinessName || 'Aegis Precision Atelier',
-            estimatedCost: p.estimatedCost || 3500,
-            status: p.status || 'PENDING',
-            createdAt: p.createdAt || new Date().toISOString(),
-          }));
-        fallbackRepairs = [...formattedPatronList, ...adminList];
-      } catch {}
-
-      const res = await apiClient.get('/api/admin/repairs').catch(() => null);
-      const serverRepairs = res?.data?.data;
-      if (Array.isArray(serverRepairs) && serverRepairs.length > 0) {
-        setRepairs(serverRepairs);
-      } else {
-        setRepairs(fallbackRepairs);
-      }
+      const response = await apiClient.get('/api/admin/repairs');
+      setRepairs(response.data || []);
     } catch (err) {
-      console.warn('Failed to load repairs:', err);
+      setLoadError(err.message || 'Could not load records.');
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadRepairs();
   }, []);
@@ -66,8 +36,8 @@ export function AdminRepairsPage() {
     const matchesSearch =
       !searchQuery.trim() ||
       (r.userFullName && r.userFullName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (r.brand && r.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (r.model && r.model.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (r.deviceBrand && r.deviceBrand.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (r.deviceModel && r.deviceModel.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (r.vendorBusinessName && r.vendorBusinessName.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesStatus && matchesSearch;
   });
@@ -85,6 +55,7 @@ export function AdminRepairsPage() {
         </div>
 
         <AdminNav />
+        {loadError && <p role="alert">{loadError}</p>}
 
         <LedgerCard
           variant="admin"
@@ -178,14 +149,14 @@ export function AdminRepairsPage() {
                         <div style={{ fontSize: '0.78rem', color: 'var(--vestige-ink-light)' }}>{r.userEmail}</div>
                       </td>
                       <td style={{ padding: '0.75rem 0.6rem' }}>
-                        <div style={{ fontWeight: 'bold' }}>{r.brand} {r.model}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--vestige-ink-light)', fontFamily: 'var(--font-mono)' }}>{r.deviceType}</div>
+                        <div style={{ fontWeight: 'bold' }}>{r.deviceBrand} {r.deviceModel}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--vestige-ink-light)', fontFamily: 'var(--font-mono)' }}>{r.deviceCategory}</div>
                       </td>
                       <td style={{ padding: '0.75rem 0.6rem', color: 'var(--vestige-ink-light)' }}>
                         {r.vendorBusinessName || 'Unassigned'}
                       </td>
                       <td style={{ padding: '0.75rem 0.6rem', fontWeight: 'bold', color: 'var(--vestige-espresso)', fontFamily: 'var(--font-serif)' }}>
-                        ₹{Number(r.estimatedCost || 0).toFixed(2)}
+                        ₹{Number(r.estimatedRepairCost || 0).toFixed(2)}
                       </td>
                       <td style={{ padding: '0.75rem 0.6rem' }}>
                         <span

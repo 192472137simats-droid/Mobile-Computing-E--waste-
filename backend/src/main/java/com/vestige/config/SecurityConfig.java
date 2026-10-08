@@ -74,16 +74,9 @@ public class SecurityConfig {
                         // Public Endpoints
                         .requestMatchers(HttpMethod.GET, "/api/health/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/vendors/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/rewards/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/rewards/redeem").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/rewards/catalog").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register/public/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/devices/assess").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/devices/submit").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/devices/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/recycling/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/recycling/**").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/recycling/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 

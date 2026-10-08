@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import com.vestige.security.JwtTokenService;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -27,6 +28,9 @@ class HealthControllerTest {
 
     @MockBean
     private DataSource dataSource;
+
+    @MockBean
+    private JwtTokenService jwtTokenService;
 
     @Test
     @DisplayName("GET /api/health returns HTTP 200 with status UP and uptime metadata")

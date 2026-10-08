@@ -16,13 +16,6 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useTranslation } from '../../../i18n/useTranslation';
 import apiClient from '../../../services/apiClient';
 
-import {
-  ensurePrototypeDataSeeded,
-  INITIAL_ADMIN_KPIS,
-  INITIAL_ADMIN_REGISTRATION_ACTIVITY,
-  INITIAL_ADMIN_VENDORS,
-  INITIAL_PLATFORM_ACTIVITIES,
-} from '../../../utils/prototypeSeed';
 
 export function AdminDashboard() {
   const { user, logout } = useAuth();
@@ -48,61 +41,22 @@ export function AdminDashboard() {
   const loadData = async (selectedRange = range) => {
     setLoading(true);
     try {
-      ensurePrototypeDataSeeded();
-
-      let fallbackKpis = INITIAL_ADMIN_KPIS;
-      try {
-        const savedKpis = localStorage.getItem('vestige_admin_kpis');
-        if (savedKpis) fallbackKpis = JSON.parse(savedKpis);
-      } catch {}
-
-      let fallbackReg = INITIAL_ADMIN_REGISTRATION_ACTIVITY[selectedRange] || INITIAL_ADMIN_REGISTRATION_ACTIVITY['6m'];
-      try {
-        const savedReg = localStorage.getItem('vestige_admin_registration_activity');
-        if (savedReg) {
-          const parsed = JSON.parse(savedReg);
-          if (parsed[selectedRange]) fallbackReg = parsed[selectedRange];
-        }
-      } catch {}
-
-      let fallbackVendors = [];
-      try {
-        const savedVendors = localStorage.getItem('vestige_admin_vendors');
-        const vList = savedVendors ? JSON.parse(savedVendors) : INITIAL_ADMIN_VENDORS;
-        fallbackVendors = vList.filter((v) => v.verificationStatus === 'PENDING');
-      } catch {
-        fallbackVendors = INITIAL_ADMIN_VENDORS.filter((v) => v.verificationStatus === 'PENDING');
-      }
-
-      const [kpiRes, regRes, vendorRes] = await Promise.all([
-        apiClient.get('/api/analytics/admin/overview').catch(() => null),
-        apiClient.get(`/api/admin/registration-activity?range=${selectedRange}`).catch(() => null),
-        apiClient.get('/api/admin/vendors/pending').catch(() => null),
+      const [kpiResponse, activityResponse, vendorResponse, actionsResponse] = await Promise.all([
+        apiClient.get('/api/analytics/admin/overview'),
+        apiClient.get(`/api/admin/registration-activity?range=${selectedRange}`),
+        apiClient.get('/api/admin/vendors/pending'),
+        apiClient.get('/api/admin/actions'),
       ]);
-
-      setPlatformKpis(kpiRes?.data?.data || fallbackKpis);
-      setRegActivity(regRes?.data?.data || fallbackReg);
-
-      const serverVendors = vendorRes?.data?.data;
-      if (Array.isArray(serverVendors) && serverVendors.length > 0) {
-        setPendingVendors(serverVendors);
-      } else {
-        setPendingVendors(fallbackVendors);
-      }
-
-      let fallbackActivities = INITIAL_PLATFORM_ACTIVITIES;
-      try {
-        const savedAct = localStorage.getItem('vestige_platform_activities');
-        if (savedAct) fallbackActivities = JSON.parse(savedAct);
-      } catch {}
-      setRecentActivities(fallbackActivities.slice(0, 6));
+      setPlatformKpis(kpiResponse.data);
+      setRegActivity(activityResponse.data);
+      setPendingVendors(vendorResponse.data || []);
+      setRecentActivities((actionsResponse.data || []).slice(0, 6));
     } catch (err) {
-      console.warn('Dashboard load error:', err);
+      setNotice(err.message || 'Could not load administration dashboard.');
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadData(range);
   }, [range]);
@@ -123,21 +77,12 @@ export function AdminDashboard() {
           await apiClient.patch(`/api/admin/vendors/${vendorId}/verify`, {
             action,
             rejectionReason: isApproving ? null : 'Document requirements unfulfilled',
-          }).catch(() => {});
-        } catch {}
-
-        try {
-          const savedVendors = JSON.parse(localStorage.getItem('vestige_admin_vendors') || '[]');
-          const updated = savedVendors.map((v) =>
-            v.id === vendorId
-              ? { ...v, verificationStatus: isApproving ? 'VERIFIED' : 'REJECTED' }
-              : v
-          );
-          localStorage.setItem('vestige_admin_vendors', JSON.stringify(updated));
-        } catch {}
-
-        setNotice(`Vendor partner successfully ${isApproving ? 'APPROVED & VERIFIED' : 'REJECTED'}.`);
-        loadData(range);
+          });
+          await loadData(range);
+          setNotice(`Vendor partner successfully ${isApproving ? 'APPROVED & VERIFIED' : 'REJECTED'}.`);
+        } catch (err) {
+          setNotice(err.message || 'Could not update vendor verification.');
+        }
       },
     });
   };

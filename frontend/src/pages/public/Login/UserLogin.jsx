@@ -108,7 +108,7 @@ export function UserLogin() {
             {forgotNotice && (
               <div className={styles.mockBanner} role="status">
                 <IconWrapper name="info" size={18} color="var(--vestige-gold-dark)" />
-                <p>Password recovery dispatch sent. Check your inbox for identity verification link.</p>
+                <p>Automated password recovery is not available yet. Contact VESTIGE support to regain access.</p>
               </div>
             )}
 

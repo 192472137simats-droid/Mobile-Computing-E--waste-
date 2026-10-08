@@ -16,7 +16,6 @@ import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/Archi
 import ConfirmModal from '../../../components/common/ConfirmModal/ConfirmModal';
 import recyclingService from '../../../services/recyclingService';
 import vendorService from '../../../services/vendorService';
-import { logPlatformActivity } from '../../../utils/prototypeSeed';
 import styles from './Recycling.module.css';
 
 export function RecyclingPage() {
@@ -64,6 +63,7 @@ export function RecyclingPage() {
       }
     } catch (err) {
       console.error('Failed to load recycling data:', err);
+      setErrorMsg(err.message || 'Could not load recycling partners.');
     } finally {
       setLoading(false);
     }
@@ -116,62 +116,8 @@ export function RecyclingPage() {
       if (res && res.data) {
         const refId = res.data.id ? res.data.id.substring(0, 8).toUpperCase() : 'PENDING';
         setSuccessMsg(
-          `✦ Collection scheduled successfully! Archival Reference ID: #${refId}. Logistics Partner: ${res.data.vendorBusinessName || 'Certified Recycler'}. +${count * 50} Circular Reward Points credited!`
+          `✦ Collection scheduled successfully! Archival Reference ID: #${refId}. Logistics Partner: ${res.data.vendorBusinessName || 'Certified Recycler'}. +${count * 50} Circular Reward Points will be awarded after collection is completed!`
         );
-
-        // Mirror to vendor recycling queue
-        try {
-          const vRec = JSON.parse(localStorage.getItem('vestige_vendor_recycling') || '[]');
-          vRec.unshift({
-            id: res.data.id,
-            userName: 'Archival Patron (Self)',
-            userPhone: '+91 98895 68711',
-            pickupAddress: payload.pickupAddress,
-            pickupDate: payload.pickupDate,
-            pickupTime: payload.pickupTime,
-            brand: payload.brand,
-            model: payload.model,
-            deviceCount: count,
-            deviceType: payload.deviceType,
-            status: 'PENDING',
-          });
-          localStorage.setItem('vestige_vendor_recycling', JSON.stringify(vRec));
-        } catch {}
-
-        // Mirror to admin recycling registry
-        try {
-          const aRec = JSON.parse(localStorage.getItem('vestige_admin_recycling') || '[]');
-          aRec.unshift({
-            id: res.data.id,
-            userFullName: 'Archival Patron',
-            userEmail: 'user@vestige.internal',
-            brand: payload.brand,
-            model: payload.model,
-            deviceType: payload.deviceType,
-            deviceCount: count,
-            pickupAddress: payload.pickupAddress,
-            status: 'PENDING',
-            pointsAwarded: count * 50,
-            pickupDate: payload.pickupDate,
-            createdAt: new Date().toISOString(),
-          });
-          localStorage.setItem('vestige_admin_recycling', JSON.stringify(aRec));
-        } catch {}
-
-        // Log activity for Admin visibility
-        logPlatformActivity({
-          actorRole: 'USER',
-          actorName: 'Archival Patron (Self)',
-          actorEmail: 'user@vestige.internal',
-          actionType: 'RECYCLING_SCHEDULED',
-          category: 'RECYCLING',
-          description: `Scheduled e-waste collection for ${count} ${payload.brand} ${payload.model}`,
-          targetEntity: 'RecyclingRequest',
-          targetId: res.data.id,
-          details: `+${count * 50} Circular Points • Logistics: ${res.data.vendorBusinessName || 'Certified Recycler'}`,
-          badge: 'USER',
-          status: 'PENDING',
-        });
 
         const requestsRes = await recyclingService.getMyRecyclingRequests();
         if (requestsRes && requestsRes.data) {

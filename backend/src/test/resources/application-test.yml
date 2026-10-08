@@ -11,6 +11,8 @@ spring:
     show-sql: false
 
 app:
+  jwt:
+    secret: vestige-test-secret-for-authentication-unit-tests
   cors:
     allowed-origins: http://localhost:5173
   supabase:

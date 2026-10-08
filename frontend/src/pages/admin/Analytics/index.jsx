@@ -17,6 +17,7 @@ export function AdminAnalytics() {
   const [repairs, setRepairs] = useState(null);
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [datePreset, setDatePreset] = useState('90');
 
   const getDates = (preset) => {
@@ -32,25 +33,23 @@ export function AdminAnalytics() {
 
   const loadData = async (preset = datePreset) => {
     setLoading(true);
+    setLoadError('');
     const params = getDates(preset);
     try {
-      const [ovRes, devRes, repRes, recRes, rewRes, venRes] = await Promise.all([
-        analyticsService.getAdminOverview(params).catch(() => null),
-        analyticsService.getAdminDevices(params).catch(() => null),
-        analyticsService.getAdminRepairs(params).catch(() => null),
-        analyticsService.getAdminRecycling(params).catch(() => null),
-        analyticsService.getAdminRewards(params).catch(() => null),
-        analyticsService.getAdminVendorWorkload(params).catch(() => []),
+      const [ovRes, devRes, repRes, venRes] = await Promise.all([
+        analyticsService.getAdminOverview(params),
+        analyticsService.getAdminDevices(params),
+        analyticsService.getAdminRepairs(params),
+        analyticsService.getAdminVendorWorkload(params),
       ]);
 
       if (ovRes) setOverview(ovRes);
       if (devRes) setDevices(devRes);
       if (repRes) setRepairs(repRes);
-      if (recRes) setRecycling(recRes);
-      if (rewRes) setRewards(rewRes);
       if (venRes) setVendors(venRes);
     } catch (err) {
       console.warn('Failed to load admin analytics:', err);
+      setLoadError(err.message || 'Could not load analytics.');
     } finally {
       setLoading(false);
     }
@@ -63,6 +62,7 @@ export function AdminAnalytics() {
   return (
     <PageShell>
       <Container size="lg">
+        {loadError && <p role="alert">{loadError}</p>}
         {/* Header Ribbon */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '2rem 0 1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>

@@ -158,7 +158,16 @@ public class RewardService {
         User user = userRepository.findById(effectiveUserId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + effectiveUserId));
 
-        RewardAccount account = getOrCreateAccount(effectiveUserId);
+        RewardCatalogItemDTO catalogItem = getCatalog().stream()
+                .filter(item -> item.getTitle().equals(dto.getRewardItem()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Reward item is not in the catalog"));
+        if (!catalogItem.getPointsCost().equals(dto.getPoints())) {
+            throw new IllegalArgumentException("Reward points do not match the catalog price");
+        }
+
+        RewardAccount account = rewardAccountRepository.findByUserIdForUpdate(effectiveUserId)
+                .orElseGet(() -> getOrCreateAccount(effectiveUserId));
         if (account.getBalance() < dto.getPoints()) {
             throw new IllegalStateException(String.format(
                     "Insufficient points balance (%d available, %d required).",

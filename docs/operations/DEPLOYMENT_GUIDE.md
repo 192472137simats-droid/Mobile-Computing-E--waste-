@@ -7,7 +7,7 @@ This guide provides step-by-step instructions to deploy VESTIGE to production on
 ## 1. Frontend Deployment (Vercel)
 
 1. Go to [Vercel Dashboard](https://vercel.com/) and click **"Add New Project"**.
-2. Import the GitHub repository: `https://github.com/ashmitha-kadiri/vestige`.
+2. Import the GitHub repository: `https://github.com/Jaswanth300/vestige`.
 3. Configure the project settings:
    - **Framework Preset**: `Vite`
    - **Root Directory**: `frontend`
@@ -25,7 +25,7 @@ This guide provides step-by-step instructions to deploy VESTIGE to production on
 ## 2. Backend Deployment (Render Web Service)
 
 1. Go to [Render Dashboard](https://dashboard.render.com/) and click **"New +" ➔ "Web Service"**.
-2. Connect the GitHub repository: `https://github.com/ashmitha-kadiri/vestige`.
+2. Connect the same repository: `https://github.com/Jaswanth300/vestige`.
 3. Choose **Docker** environment or **Native Java / Maven**:
    - **Root Directory**: `backend`
    - **Build Command**: `./mvnw clean package -DskipTests`

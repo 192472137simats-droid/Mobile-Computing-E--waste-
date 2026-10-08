@@ -68,7 +68,7 @@ public class AnalyticsService {
 
         AdminOverviewDTO dto = new AdminOverviewDTO();
         dto.setTotalUsers(userRepository.countByRole(UserRole.USER));
-        dto.setActiveUsers(userRepository.countByIsActiveTrue());
+        dto.setActiveUsers(userRepository.countByRoleAndIsActiveTrue(UserRole.USER));
         dto.setTotalVendors(vendorProfileRepository.count());
         dto.setVerifiedVendors(vendorProfileRepository.countByVerificationStatus(VendorVerificationStatus.VERIFIED));
 

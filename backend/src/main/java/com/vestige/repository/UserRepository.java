@@ -18,6 +18,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmail(String email);
     List<User> findByRole(UserRole role);
     long countByRole(UserRole role);
+    long countByRoleAndIsActiveTrue(UserRole role);
     long countByIsActiveTrue();
 
     @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role AND u.createdAt >= :startDate AND u.createdAt <= :endDate")

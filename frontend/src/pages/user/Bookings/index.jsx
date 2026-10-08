@@ -13,21 +13,14 @@ import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/Archi
 import ConfirmModal from '../../../components/common/ConfirmModal/ConfirmModal';
 import { useTranslation } from '../../../i18n/useTranslation';
 import apiClient from '../../../services/apiClient.js';
-import {
-  ensurePrototypeDataSeeded,
-  INITIAL_USER_BOOKINGS,
-  INITIAL_USER_RECYCLING,
-  logPlatformActivity,
-} from '../../../utils/prototypeSeed.js';
-
-const LOCAL_USER_BOOKINGS = 'vestige_user_bookings';
-const LOCAL_RECYCLING_KEY = 'vestige_recycling_requests';
+import paymentService from '../../../services/paymentService.js';
 
 export function Bookings() {
   const { t } = useTranslation();
   const location = useLocation();
   const [repairs, setRepairs] = useState([]);
   const [recycling, setRecycling] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('repairs');
   const [actionMessage, setActionMessage] = useState(location.state?.successMessage || '');
@@ -45,94 +38,29 @@ export function Bookings() {
   const loadBookings = React.useCallback(async () => {
     setLoading(true);
     try {
-      ensurePrototypeDataSeeded();
-
-      let localBookings = [];
-      let localRecycling = [];
-
-      try {
-        const bSaved = localStorage.getItem(LOCAL_USER_BOOKINGS);
-        localBookings = bSaved ? JSON.parse(bSaved) : INITIAL_USER_BOOKINGS;
-
-        const rSaved = localStorage.getItem(LOCAL_RECYCLING_KEY);
-        localRecycling = rSaved ? JSON.parse(rSaved) : INITIAL_USER_RECYCLING;
-      } catch {}
-
-      const [repairsRes, recyclingRes] = await Promise.all([
-        apiClient.get('/api/repairs/my').catch(() => ({ data: [] })),
-        apiClient.get('/api/recycling/my').catch(() => ({ data: [] })),
+      const [repairsRes, recyclingRes, paymentHistory] = await Promise.all([
+        apiClient.get('/api/repairs/my'),
+        apiClient.get('/api/recycling/my'),
+        paymentService.getMyPaymentHistory(),
       ]);
-
-      const serverRepairs = repairsRes?.data?.data || (Array.isArray(repairsRes?.data) ? repairsRes.data : []);
-      const existingRepIds = new Set(serverRepairs.map((r) => r.id));
-      const combinedRepairs = [
-        ...serverRepairs,
-        ...localBookings.filter((l) => !existingRepIds.has(l.id)),
-      ];
-      setRepairs(combinedRepairs.length > 0 ? combinedRepairs : localBookings);
-
-      const serverRecycling = recyclingRes?.data?.data || (Array.isArray(recyclingRes?.data) ? recyclingRes.data : []);
-      const existingRecIds = new Set(serverRecycling.map((r) => r.id));
-      const combinedRecycling = [
-        ...serverRecycling,
-        ...localRecycling.filter((l) => !existingRecIds.has(l.id)),
-      ];
-      setRecycling(combinedRecycling.length > 0 ? combinedRecycling : localRecycling);
+      setRepairs(repairsRes.data || []);
+      setRecycling(recyclingRes.data || []);
+      setPayments(paymentHistory || []);
     } catch (err) {
-      console.warn('Error loading bookings:', err);
+      setActionMessage(err.message || 'Could not load your bookings.');
     } finally {
       setLoading(false);
     }
   }, []);
-
   useEffect(() => {
     loadBookings();
   }, [loadBookings]);
 
   const handlePaymentSuccess = (paymentData) => {
-    if (!selectedBookingForPayment) return;
-    const bookingId = selectedBookingForPayment.id;
-    const receiptRef = paymentData?.transactionRef || `VSTG-PAY-${Math.floor(100000 + Math.random() * 900000)}`;
-
-    const updated = repairs.map((r) =>
-      r.id === bookingId
-        ? {
-            ...r,
-            isPaid: true,
-            status: 'COMPLETED',
-            receiptId: receiptRef,
-          }
-        : r
-    );
-
-    setRepairs(updated);
-    try {
-      localStorage.setItem(LOCAL_USER_BOOKINGS, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Could not persist paid booking:', e);
-    }
-
-    // Log payment activity for Admin visibility
-    logPlatformActivity({
-      actorRole: 'USER',
-      actorName: 'Archival Patron (Self)',
-      actorEmail: 'user@vestige.internal',
-      actionType: 'PAYMENT_SETTLED',
-      category: 'PAYMENTS',
-      description: `Settled workshop repair invoice for ${selectedBookingForPayment.brand} ${selectedBookingForPayment.model}`,
-      targetEntity: 'PaymentTransaction',
-      targetId: receiptRef,
-      details: `Amount: ₹${selectedBookingForPayment.estimatedCost || 3500} • Order: ${receiptRef}`,
-      badge: 'USER',
-      status: 'SETTLED',
-    });
-
     setSelectedBookingForPayment(null);
-    setActionMessage(
-      `✓ Payment verified successfully! Archival receipt #${receiptRef} recorded for ${selectedBookingForPayment.brand} ${selectedBookingForPayment.model}.`
-    );
+    setActionMessage(`Payment verified. Receipt #${paymentData?.transactionRef || paymentData?.id || 'recorded'}.`);
+    loadBookings();
   };
-
   const openCancelRepairModal = (id) => {
     setConfirmModalConfig({
       isOpen: true,
@@ -143,18 +71,16 @@ export function Bookings() {
       isDestructive: true,
       onConfirm: async () => {
         setConfirmModalConfig((prev) => ({ ...prev, isOpen: false }));
-        const updated = repairs.map((r) => (r.id === id ? { ...r, status: 'CANCELLED' } : r));
-        setRepairs(updated);
-        try {
-          localStorage.setItem(LOCAL_USER_BOOKINGS, JSON.stringify(updated));
-        } catch {}
         try {
           await apiClient.patch(`/api/repairs/${id}/status`, {
             status: 'CANCELLED',
             notes: 'Cancelled by patron',
           });
-        } catch {}
-        setActionMessage(t('common.success', 'Repair booking has been cancelled.'));
+          await loadBookings();
+          setActionMessage(t('common.success', 'Repair booking has been cancelled.'));
+        } catch (err) {
+          setActionMessage(err.message || 'Could not cancel repair booking.');
+        }
       },
     });
   };
@@ -169,18 +95,16 @@ export function Bookings() {
       isDestructive: true,
       onConfirm: async () => {
         setConfirmModalConfig((prev) => ({ ...prev, isOpen: false }));
-        const updated = recycling.map((r) => (r.id === id ? { ...r, status: 'CANCELLED' } : r));
-        setRecycling(updated);
-        try {
-          localStorage.setItem(LOCAL_RECYCLING_KEY, JSON.stringify(updated));
-        } catch {}
         try {
           await apiClient.patch(`/api/recycling/${id}/status`, {
             status: 'CANCELLED',
             notes: 'Cancelled by patron',
           });
-        } catch {}
-        setActionMessage(t('common.success', 'E-waste collection request has been cancelled.'));
+          await loadBookings();
+          setActionMessage(t('common.success', 'E-waste collection request has been cancelled.'));
+        } catch (err) {
+          setActionMessage(err.message || 'Could not cancel collection.');
+        }
       },
     });
   };
@@ -201,12 +125,15 @@ export function Bookings() {
     }
   };
 
-  // Calculations for prototype metrics
+  const successfulPayments = payments.filter((payment) => payment.status === 'SUCCESS');
+  const paidBookingIds = new Set(successfulPayments.map((payment) => payment.relatedEntityId));
+
+  // Calculations for payment metrics
   const totalSettledAmount = repairs
     .filter((r) => r.isPaid)
     .reduce((acc, r) => acc + (parseFloat(r.estimatedCost) || 3500), 0);
   const pendingPaymentCount = repairs.filter(
-    (r) => !r.isPaid && (r.status === 'COMPLETED' || r.status === 'IN_PROGRESS')
+    (r) => !paidBookingIds.has(r.id) && (r.status === 'COMPLETED' || r.status === 'IN_PROGRESS')
   ).length;
 
   return (
@@ -250,7 +177,7 @@ export function Bookings() {
             <Button
               variant="ornate"
               size="sm"
-              onClick={() => setSelectedBookingForPayment(repairs[0] || INITIAL_USER_BOOKINGS[0])}
+              onClick={() => setSelectedBookingForPayment(repairs.find((r) => !paidBookingIds.has(r.id) && (r.status === 'COMPLETED' || r.status === 'IN_PROGRESS')) || null)}
               icon={<IconWrapper name="credit-card" size={16} />}
             >
               Pay Workshop Bill (Razorpay)
@@ -426,7 +353,7 @@ export function Bookings() {
                 const vendorPhone = r.vendor?.whatsappNumber || r.vendorWhatsappNumber || '+919876543210';
                 const workshopName = r.vendor?.businessName || r.vendorBusinessName || 'Aegis Diagnostics Atelier';
                 const contextualMsg = `Hello ${workshopName}, I am contacting you regarding my VESTIGE repair booking #${r.id || ''} for my ${r.submission?.brand || r.brand || ''} ${r.submission?.model || r.model || ''}.`;
-                const feeAmount = r.submission?.estimatedRepairCost || r.estimatedCost || 3500.0;
+                const feeAmount = r.submission?.estimatedRepairCost || r.estimatedCost || 500;
 
                 return (
                   <LedgerCard
@@ -514,7 +441,7 @@ export function Bookings() {
                     >
                       {/* Payment Options Row */}
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                        {r.isPaid ? (
+                        {paidBookingIds.has(r.id) ? (
                           <div
                             style={{
                               display: 'flex',
@@ -530,20 +457,18 @@ export function Bookings() {
                             }}
                           >
                             <IconWrapper name="check" size={16} color="var(--vestige-moss)" />
-                            <span>Paid via Razorpay (Ref #{r.receiptId || 'VSTG-PAY-882190'})</span>
+                            <span>Paid via Razorpay (Ref #{successfulPayments.find((payment) => payment.relatedEntityId === r.id)?.providerPaymentId || 'recorded'})</span>
                           </div>
                         ) : (
                           <>
-                            <Button
+                            {r.status !== 'CANCELLED' && r.status !== 'REJECTED' && <Button
                               variant="ornate"
                               size="sm"
                               onClick={() => setSelectedBookingForPayment(r)}
                               icon={<IconWrapper name="credit-card" size={16} />}
                             >
-                              {r.status === 'COMPLETED'
-                                ? `Pay Final Workshop Bill (₹${Number(feeAmount).toFixed(0)})`
-                                : `Pay Diagnostic Advance / Deposit (₹500)`}
-                            </Button>
+                              {`Pay Workshop Bill (₹${Number(feeAmount).toFixed(0)})`}
+                            </Button>}
 
                             {r.status !== 'CANCELLED' && r.status !== 'COMPLETED' && (
                               <Button

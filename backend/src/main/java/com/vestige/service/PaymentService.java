@@ -12,6 +12,7 @@ import com.vestige.model.Payment;
 import com.vestige.model.RepairBooking;
 import com.vestige.model.User;
 import com.vestige.model.enums.PaymentStatusType;
+import com.vestige.model.enums.BookingStatusType;
 import com.vestige.model.enums.UserRole;
 import com.vestige.repository.AdminActionRepository;
 import com.vestige.repository.PaymentRepository;
@@ -45,6 +46,7 @@ public class PaymentService {
     private final RepairBookingRepository repairBookingRepository;
     private final UserRepository userRepository;
     private final AdminActionRepository adminActionRepository;
+    private final RazorpayGateway razorpayGateway;
 
     @Value("${app.razorpay.key-id:rzp_test_placeholder}")
     private String razorpayKeyId;
@@ -55,11 +57,13 @@ public class PaymentService {
     public PaymentService(PaymentRepository paymentRepository,
                           RepairBookingRepository repairBookingRepository,
                           UserRepository userRepository,
-                          AdminActionRepository adminActionRepository) {
+                          AdminActionRepository adminActionRepository,
+                          RazorpayGateway razorpayGateway) {
         this.paymentRepository = paymentRepository;
         this.repairBookingRepository = repairBookingRepository;
         this.userRepository = userRepository;
         this.adminActionRepository = adminActionRepository;
+        this.razorpayGateway = razorpayGateway;
     }
 
     @Transactional
@@ -74,6 +78,15 @@ public class PaymentService {
         if (!booking.getUser().getId().equals(currentUser.getId()) && currentUser.getRole() != UserRole.ADMIN) {
             throw new ForbiddenException("You are not authorized to initiate payment for this repair booking");
         }
+        if (booking.getStatus() == BookingStatusType.CANCELLED || booking.getStatus() == BookingStatusType.REJECTED) {
+            throw new IllegalStateException("Cancelled or rejected bookings cannot be paid");
+        }
+        boolean alreadyPaid = paymentRepository
+                .findByRelatedEntityTypeAndRelatedEntityIdOrderByCreatedAtDesc("REPAIR_BOOKING", bookingId)
+                .stream().anyMatch(payment -> payment.getStatus() == PaymentStatusType.SUCCESS);
+        if (alreadyPaid) {
+            throw new IllegalStateException("This repair booking has already been paid");
+        }
 
         // Server-side amount computation from verified database record
         BigDecimal payableAmount = booking.getSubmission().getEstimatedRepairCost();
@@ -84,8 +97,7 @@ public class PaymentService {
         User user = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User profile not found"));
 
-        // Generate Razorpay Order Identifier
-        String orderId = "order_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        String orderId = razorpayGateway.createOrder(payableAmount, booking.getId().toString());
 
         Payment payment = new Payment(
                 user,
@@ -131,13 +143,14 @@ public class PaymentService {
         );
 
         if (!isValid) {
-            payment.setStatus(PaymentStatusType.FAILED);
-            payment.setFailureReason("Cryptographic signature verification failed");
-            payment.setUpdatedAt(OffsetDateTime.now());
-            paymentRepository.save(payment);
             logger.warn("Payment signature verification FAILED for order {}", request.getRazorpayOrderId());
-            throw new IllegalArgumentException("Payment signature verification failed. Transaction flagged as unverified.");
+            throw new IllegalArgumentException("Payment signature verification failed");
         }
+
+        if (payment.getStatus() != PaymentStatusType.PENDING) {
+            throw new IllegalStateException("Payment order has already been processed");
+        }
+        razorpayGateway.assertPaymentCaptured(request.getRazorpayOrderId(), request.getRazorpayPaymentId());
 
         payment.setStatus(PaymentStatusType.SUCCESS);
         payment.setProviderPaymentId(request.getRazorpayPaymentId());
@@ -205,11 +218,6 @@ public class PaymentService {
     private boolean verifyRazorpayHmac(String orderId, String paymentId, String signature) {
         if (!StringUtils.hasText(signature)) {
             return false;
-        }
-
-        // Test/Sandbox mode fallback for development validation
-        if ("rzp_secret_placeholder".equals(razorpayKeySecret) || signature.startsWith("mock_") || signature.startsWith("test_")) {
-            return true;
         }
 
         try {

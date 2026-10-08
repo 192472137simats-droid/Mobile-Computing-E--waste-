@@ -129,8 +129,8 @@ class RewardServiceTest {
 
         RedeemRewardRequestDTO dto = new RedeemRewardRequestDTO(
                 testUser.getId(),
-                "₹1,000 Refurbished Device Credit",
-                500, // exceeds 300 balance
+                "₹1,000 Refurbished Device Purchase Credit",
+                450, // exceeds 300 balance
                 "Notes"
         );
 

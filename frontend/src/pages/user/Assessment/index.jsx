@@ -11,8 +11,9 @@ import Button from '../../../components/common/Button/Button';
 import Divider from '../../../components/common/Divider/Divider';
 import IconWrapper from '../../../components/common/IconWrapper/IconWrapper';
 import deviceService from '../../../services/deviceService';
+import vendorService from '../../../services/vendorService';
+import { api } from '../../../services/api';
 import { useTranslation } from '../../../i18n/useTranslation';
-import { logPlatformActivity } from '../../../utils/prototypeSeed';
 import styles from './Assessment.module.css';
 
 const AVAILABLE_ISSUES = [
@@ -95,103 +96,30 @@ export function AssessmentPage() {
     }
   };
 
-  const handleBookRepair = () => {
-    if (!assessmentResult) return;
-
-    const refId = `REP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-    const newBooking = {
-      id: refId,
-      submissionId: assessmentResult.id || null,
-      deviceType: assessmentResult.deviceType || formData.deviceType || 'SMARTPHONE',
-      brand: assessmentResult.brand || formData.brand || 'Apparatus',
-      model: assessmentResult.model || formData.model || 'Standard Edition',
-      vendorBusinessName: 'Aegis Precision Electronics Atelier',
-      vendorWhatsappNumber: '+919889568711',
-      estimatedCost: parseFloat(assessmentResult.estimatedRepairCost || formData.repairCost || 3200),
-      status: 'PENDING',
-      preferredDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-      preferredTime: '11:00 AM',
-      issueDescription: selectedIssues.length > 0 ? selectedIssues.join(', ') : 'Hardware diagnostic restoration and testing',
-      isPaid: false,
-      submission: {
-        brand: assessmentResult.brand || formData.brand,
-        model: assessmentResult.model || formData.model,
-        estimatedRepairCost: parseFloat(assessmentResult.estimatedRepairCost || formData.repairCost || 3200),
-        engineScore: assessmentResult.engineScore || 78,
-        engineRecommendation: 'REPAIR',
-      },
-      createdAt: new Date().toISOString(),
-    };
-
+  const handleBookRepair = async () => {
+    if (!assessmentResult || loading) return;
+    setError('');
+    setLoading(true);
     try {
-      const savedBookings = JSON.parse(localStorage.getItem('vestige_user_bookings') || '[]');
-      savedBookings.unshift(newBooking);
-      localStorage.setItem('vestige_user_bookings', JSON.stringify(savedBookings));
-    } catch (e) {
-      console.warn('Could not save booking locally:', e);
-    }
-
-    try {
-      const vendorRepairs = JSON.parse(localStorage.getItem('vestige_vendor_repairs') || '[]');
-      vendorRepairs.unshift({
-        id: newBooking.id,
-        userName: 'Archival Patron (Self)',
-        userEmail: 'user@vestige.internal',
-        userPhone: '+91 98895 68711',
-        brand: newBooking.brand,
-        model: newBooking.model,
-        deviceType: newBooking.deviceType,
-        status: 'PENDING',
-        preferredDate: newBooking.preferredDate,
-        preferredTime: newBooking.preferredTime,
-        estimatedCost: newBooking.estimatedCost,
-        issueDescription: newBooking.issueDescription,
-        createdAt: new Date().toISOString(),
+      const vendorResponse = await vendorService.getVendors('REPAIR');
+      const vendor = vendorResponse.data?.find((item) => item.verificationStatus === 'VERIFIED');
+      if (!vendor) throw new Error('No verified repair workshop is available right now.');
+      const bookingResponse = await api.post('/repairs', {
+        vendorId: vendor.id,
+        submissionId: assessmentResult.id,
+        preferredDate: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10),
+        preferredTime: '11:00:00',
+        issueDescription: selectedIssues.join(', ') || 'Hardware diagnostic restoration and testing',
       });
-      localStorage.setItem('vestige_vendor_repairs', JSON.stringify(vendorRepairs));
-    } catch (e) {
-      console.warn('Could not mirror booking to vendor:', e);
-    }
-
-    try {
-      const adminRepairs = JSON.parse(localStorage.getItem('vestige_admin_repairs') || '[]');
-      adminRepairs.unshift({
-        id: newBooking.id,
-        userFullName: 'Archival Patron',
-        userEmail: 'user@vestige.internal',
-        brand: newBooking.brand,
-        model: newBooking.model,
-        deviceType: newBooking.deviceType,
-        vendorBusinessName: newBooking.vendorBusinessName,
-        estimatedCost: newBooking.estimatedCost,
-        status: 'PENDING',
-        createdAt: new Date().toISOString(),
+      navigate('/user/bookings', {
+        state: { successMessage: `Repair booking #${bookingResponse.data.id} confirmed with ${vendor.businessName}.` },
       });
-      localStorage.setItem('vestige_admin_repairs', JSON.stringify(adminRepairs));
-    } catch {}
-
-    // Log activity for Admin visibility
-    logPlatformActivity({
-      actorRole: 'USER',
-      actorName: 'Archival Patron (Self)',
-      actorEmail: 'user@vestige.internal',
-      actionType: 'REPAIR_BOOKED',
-      category: 'REPAIR',
-      description: `Booked repair for ${newBooking.brand} ${newBooking.model} (${newBooking.issueDescription})`,
-      targetEntity: 'RepairBooking',
-      targetId: newBooking.id,
-      details: `Quote: ₹${newBooking.estimatedCost} • Atelier: ${newBooking.vendorBusinessName}`,
-      badge: 'USER',
-      status: 'PENDING',
-    });
-
-    navigate('/user/bookings', {
-      state: {
-        successMessage: `Restoration booking #${newBooking.id} scheduled for ${newBooking.brand} ${newBooking.model}!`,
-      },
-    });
+    } catch (err) {
+      setError(err.message || 'Could not create repair booking. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
-
   const handleProceedToRecycling = () => {
     if (!assessmentResult) return;
     navigate('/user/recycling', {

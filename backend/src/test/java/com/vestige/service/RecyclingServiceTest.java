@@ -6,11 +6,15 @@ import com.vestige.model.*;
 import com.vestige.model.enums.*;
 import com.vestige.repository.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.vestige.security.UserPrincipal;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -65,6 +69,8 @@ class RecyclingServiceTest {
         testUser.setId(UUID.randomUUID());
 
         testVendor = new VendorProfile();
+        User vendorUser = new User("Recycler", "recycler@example.com", "hash", null, UserRole.VENDOR);
+        testVendor.setUser(vendorUser);
         testVendor.setId(UUID.randomUUID());
         testVendor.setBusinessName("Aegis Eco-Recycling");
         testVendor.setVerificationStatus(VendorVerificationStatus.VERIFIED);
@@ -84,6 +90,16 @@ class RecyclingServiceTest {
         testRequest.setPickupDate(LocalDate.now().plusDays(1));
         testRequest.setDeviceCount(2);
         testRequest.setStatus(RecyclingStatusType.SCHEDULED);
+
+        UserPrincipal principal = UserPrincipal.fromEntity(vendorUser);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
+        lenient().when(userRepository.findById(vendorUser.getId())).thenReturn(Optional.of(vendorUser));
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test

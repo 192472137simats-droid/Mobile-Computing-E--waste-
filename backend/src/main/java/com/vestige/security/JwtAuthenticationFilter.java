@@ -1,10 +1,7 @@
 package com.vestige.security;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vestige.model.User;
-import com.vestige.model.enums.PreferredLanguage;
-import com.vestige.model.enums.UserRole;
 import com.vestige.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,8 +19,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,11 +29,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final ObjectProvider<UserRepository> userRepositoryProvider;
-    private final ObjectMapper objectMapper;
+    private final JwtTokenService jwtTokenService;
 
-    public JwtAuthenticationFilter(ObjectProvider<UserRepository> userRepositoryProvider, ObjectMapper objectMapper) {
+    public JwtAuthenticationFilter(ObjectProvider<UserRepository> userRepositoryProvider, JwtTokenService jwtTokenService) {
         this.userRepositoryProvider = userRepositoryProvider;
-        this.objectMapper = objectMapper;
+        this.jwtTokenService = jwtTokenService;
     }
 
     @Override
@@ -69,88 +64,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private void processToken(String token, HttpServletRequest request) {
         try {
-            String[] parts = token.split("\\.");
-            if (parts.length < 2) {
-                logger.warn("Invalid JWT token format received");
-                return;
-            }
-
-            // Decode payload safely
-            String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
-            JsonNode payload = objectMapper.readTree(payloadJson);
-
-            // Extract sub (UUID) and email claims
-            JsonNode subNode = payload.get("sub");
-            JsonNode emailNode = payload.get("email");
-            JsonNode expNode = payload.get("exp");
-
-            // Expiration verification
-            if (expNode != null && expNode.isNumber()) {
-                long expSeconds = expNode.asLong();
-                long nowSeconds = System.currentTimeMillis() / 1000;
-                if (nowSeconds >= expSeconds) {
-                    logger.warn("JWT token has expired (exp: {}, now: {})", expSeconds, nowSeconds);
-                    return;
-                }
-            }
-
-            if (subNode == null || !subNode.isTextual()) {
-                logger.warn("JWT payload missing 'sub' claim");
-                return;
-            }
-
-            UUID userUuid = UUID.fromString(subNode.asText());
-            String email = emailNode != null && emailNode.isTextual() ? emailNode.asText() : "";
-
-            // Check if user exists in public.users (with DB fault isolation)
+            JsonNode payload = jwtTokenService.verifyToken(token);
+            UUID userUuid = UUID.fromString(payload.path("sub").asText());
             UserRepository userRepository = userRepositoryProvider.getIfAvailable();
-            Optional<User> userOpt = Optional.empty();
-            if (userRepository != null) {
-                try {
-                    userOpt = userRepository.findById(userUuid);
-                    if (userOpt.isEmpty() && StringUtils.hasText(email)) {
-                        userOpt = userRepository.findByEmail(email);
-                    }
-                } catch (Exception dbEx) {
-                    logger.warn("Database lookup failed during JWT filter, proceeding with token claims: {}", dbEx.getMessage());
-                }
-            }
-
-            UserPrincipal principal;
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
-                principal = UserPrincipal.fromEntity(user);
-            } else {
-                // Parse role and full name directly from JWT payload claims
-                UserRole role = UserRole.USER;
-                JsonNode appMetadata = payload.get("app_metadata");
-                JsonNode userMetadata = payload.get("user_metadata");
-                String roleClaim = null;
-                if (appMetadata != null && appMetadata.has("role")) {
-                    roleClaim = appMetadata.get("role").asText();
-                } else if (userMetadata != null && userMetadata.has("role")) {
-                    roleClaim = userMetadata.get("role").asText();
-                }
-                if (roleClaim != null) {
-                    try {
-                        role = UserRole.valueOf(roleClaim.toUpperCase());
-                    } catch (Exception ignored) {}
-                }
-
-                String name = email;
-                if (userMetadata != null && userMetadata.has("full_name") && userMetadata.get("full_name").isTextual()) {
-                    name = userMetadata.get("full_name").asText();
-                }
-
-                principal = new UserPrincipal(
-                        userUuid,
-                        email,
-                        StringUtils.hasText(name) ? name : "Archival Patron",
-                        role,
-                        PreferredLanguage.en,
-                        true
-                );
-            }
+            if (userRepository == null) return;
+            Optional<User> userOpt = userRepository.findById(userUuid);
+            if (userOpt.isEmpty() || !userOpt.get().isActive()) return;
+            UserPrincipal principal = UserPrincipal.fromEntity(userOpt.get());
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());

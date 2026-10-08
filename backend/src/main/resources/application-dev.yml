@@ -19,3 +19,7 @@ logging:
     com.vestige: DEBUG
     org.springframework.web: INFO
     org.hibernate.SQL: INFO
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:vestige-local-development-secret-change-before-deployment}

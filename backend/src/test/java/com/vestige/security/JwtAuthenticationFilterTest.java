@@ -22,6 +22,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -40,11 +42,12 @@ class JwtAuthenticationFilterTest {
 
     private JwtAuthenticationFilter filter;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final String TEST_SECRET = "vestige-test-secret-for-authentication-unit-tests";
 
     @BeforeEach
     void setUp() {
         lenient().when(userRepositoryProvider.getIfAvailable()).thenReturn(userRepository);
-        filter = new JwtAuthenticationFilter(userRepositoryProvider, objectMapper);
+        filter = new JwtAuthenticationFilter(userRepositoryProvider, new JwtTokenService(objectMapper, TEST_SECRET));
     }
 
     @AfterEach
@@ -57,7 +60,14 @@ class JwtAuthenticationFilterTest {
         String payload = Base64.getUrlEncoder().withoutPadding().encodeToString(
                 String.format("{\"sub\":\"%s\",\"email\":\"%s\",\"exp\":%d,\"role\":\"authenticated\"}", sub, email, expSeconds).getBytes(StandardCharsets.UTF_8)
         );
-        return header + "." + payload + ".dummy-sig";
+        try {
+            String data = header + "." + payload;
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(TEST_SECRET.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            return data + "." + Base64.getUrlEncoder().withoutPadding().encodeToString(mac.doFinal(data.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
     }
 
     @Test
@@ -83,6 +93,17 @@ class JwtAuthenticationFilterTest {
 
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    void testTamperedSignatureIsRejected() throws Exception {
+        UUID userId = UUID.randomUUID();
+        String token = createJwt(userId, "patron@vestige.internal", System.currentTimeMillis() / 1000 + 3600);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + token.substring(0, token.length() - 1)
+                + (token.endsWith("A") ? "B" : "A"));
+        filter.doFilterInternal(request, new MockHttpServletResponse(), filterChain);
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
     }
 
     @Test

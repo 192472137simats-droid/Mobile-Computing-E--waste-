@@ -10,6 +10,7 @@ import analyticsService from '../../../services/analyticsService';
 export function UserAnalytics() {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     async function loadData() {
@@ -18,6 +19,7 @@ export function UserAnalytics() {
         setAnalytics(data);
       } catch (err) {
         console.warn('Failed to load user analytics:', err);
+        setLoadError(err.message || 'Could not load analytics.');
       } finally {
         setLoading(false);
       }
@@ -28,6 +30,7 @@ export function UserAnalytics() {
   return (
     <PageShell>
       <Container size="lg">
+        {loadError && <p role="alert">{loadError}</p>}
         {/* Header Ribbon */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '2rem 0 1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>

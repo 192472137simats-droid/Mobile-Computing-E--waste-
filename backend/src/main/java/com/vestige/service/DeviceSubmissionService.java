@@ -38,37 +38,12 @@ public class DeviceSubmissionService {
 
     @Transactional
     public DeviceAssessmentResponse submitAssessment(DeviceAssessmentRequest req) {
-        User user = null;
-
-        // Check if there is an authenticated user
-        Optional<UserPrincipal> currentPrincipal = SecurityUtils.getCurrentUserPrincipal();
-        if (currentPrincipal.isPresent()) {
-            SecurityUtils.assertActive();
-            UUID currentUserId = currentPrincipal.get().getId();
-
-            try {
-                if (currentPrincipal.get().getRole() == UserRole.ADMIN && req.getUserId() != null) {
-                    user = userRepository.findById(req.getUserId()).orElse(null);
-                } else {
-                    user = userRepository.findById(currentUserId).orElse(null);
-                }
-            } catch (Exception ignored) {}
-        } else if (req.getUserId() != null) {
-            try {
-                user = userRepository.findById(req.getUserId()).orElse(null);
-            } catch (Exception ignored) {}
-        }
-
-        if (user == null) {
-            // Find or create fallback patron profile
-            try {
-                user = userRepository.findByEmail("user@vestige.internal")
-                        .orElseGet(() -> {
-                            User demo = new User("Archival Patron", "user@vestige.internal", "[SUPABASE_AUTH_MANAGED]", "+919876543210", UserRole.USER);
-                            return userRepository.save(demo);
-                        });
-            } catch (Exception ignored) {}
-        }
+        SecurityUtils.assertActive();
+        UserPrincipal principal = SecurityUtils.requireCurrentUser();
+        UUID userId = principal.getRole() == UserRole.ADMIN && req.getUserId() != null
+                ? req.getUserId() : principal.getId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
         // Run Decision Engine evaluation
         AssessmentResult result = decisionEngineService.evaluate(
@@ -97,36 +72,7 @@ public class DeviceSubmissionService {
         sub.setEngineConfidence(result.confidence());
         sub.setEngineRationale(result.rationale());
 
-        DeviceSubmission saved = null;
-        try {
-            saved = submissionRepository.save(sub);
-        } catch (Exception ignored) {}
-
-        if (saved != null) {
-            return mapToResponse(saved);
-        }
-
-        // Fallback in-memory response if database write is unavailable
-        DeviceAssessmentResponse res = new DeviceAssessmentResponse();
-        res.setId(UUID.randomUUID());
-        if (user != null) {
-            res.setUserId(user.getId());
-        }
-        res.setDeviceType(sub.getDeviceType());
-        res.setBrand(sub.getBrand());
-        res.setModel(sub.getModel());
-        res.setDeviceAgeYears(sub.getDeviceAgeYears());
-        res.setCondition(sub.getCondition());
-        res.setKnownIssues(sub.getKnownIssues());
-        res.setEstimatedRepairCost(sub.getEstimatedRepairCost());
-        res.setOriginalValue(sub.getOriginalValue());
-        res.setPartAvailability(sub.getPartAvailability());
-        res.setEngineScore(result.score());
-        res.setEngineRecommendation(result.recommendation());
-        res.setEngineConfidence(result.confidence());
-        res.setEngineRationale(result.rationale());
-        res.setCreatedAt(java.time.Instant.now());
-        return res;
+        return mapToResponse(submissionRepository.save(sub));
     }
 
     @Transactional(readOnly = true)

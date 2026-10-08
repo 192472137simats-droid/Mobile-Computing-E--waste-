@@ -9,38 +9,26 @@ import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/Archi
 import ArchivalEmptyState from '../../../components/vintage/ArchivalEmptyState/ArchivalEmptyState';
 import apiClient from '../../../services/apiClient';
 
-import { ensurePrototypeDataSeeded, INITIAL_ADMIN_PAYMENTS } from '../../../utils/prototypeSeed';
 
 export function AdminPaymentsPage() {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
   const loadPayments = async () => {
     setLoading(true);
+    setLoadError('');
     try {
-      ensurePrototypeDataSeeded();
-      let fallbackPayments = INITIAL_ADMIN_PAYMENTS;
-      try {
-        const saved = localStorage.getItem('vestige_admin_payments');
-        if (saved) fallbackPayments = JSON.parse(saved);
-      } catch {}
-
-      const res = await apiClient.get('/api/admin/payments').catch(() => null);
-      const serverMetrics = res?.data?.data;
-      if (serverMetrics && serverMetrics.recentTransactions?.length > 0) {
-        setMetrics(serverMetrics);
-      } else {
-        setMetrics(fallbackPayments);
-      }
+      const response = await apiClient.get('/api/admin/payments');
+      setMetrics(response.data || null);
     } catch (err) {
-      console.warn('Failed to load payment metrics:', err);
+      setLoadError(err.message || 'Could not load records.');
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadPayments();
   }, []);
@@ -69,6 +57,7 @@ export function AdminPaymentsPage() {
         </div>
 
         <AdminNav />
+        {loadError && <p role="alert">{loadError}</p>}
 
         {/* Financial KPI Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>

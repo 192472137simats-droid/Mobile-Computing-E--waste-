@@ -10,53 +10,18 @@ import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/Archi
 import ConfirmModal from '../../../components/common/ConfirmModal/ConfirmModal';
 import { useAuth } from '../../../contexts/AuthContext';
 import api from '../../../services/api';
-import {
-  ensurePrototypeDataSeeded,
-  INITIAL_VENDOR_REPAIRS,
-  INITIAL_VENDOR_RECYCLING,
-  logPlatformActivity,
-} from '../../../utils/prototypeSeed';
-
-const LOCAL_VENDOR_REPAIRS = 'vestige_vendor_repairs';
-const LOCAL_VENDOR_RECYCLING = 'vestige_vendor_recycling';
-const LOCAL_VENDOR_VERIFIED = 'vestige_vendor_verified';
 
 export function VendorDashboard() {
   const { user, logout } = useAuth();
-
-  // Accreditation state defaults to VERIFIED for prototype workbench testing
-  const [isVerified, setIsVerified] = useState(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return localStorage.getItem(LOCAL_VENDOR_VERIFIED) !== 'false';
-    }
-    return true;
-  });
-
-  const [repairs, setRepairs] = useState(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        const saved = localStorage.getItem(LOCAL_VENDOR_REPAIRS);
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return INITIAL_VENDOR_REPAIRS;
-  });
-
-  const [recycling, setRecycling] = useState(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        const saved = localStorage.getItem(LOCAL_VENDOR_RECYCLING);
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return INITIAL_VENDOR_RECYCLING;
-  });
-
-  const [loading, setLoading] = useState(false);
+  const vendor = user?.vendorProfile;
+  const vendorId = vendor?.id;
+  const isVerified = vendor?.verificationStatus === 'VERIFIED';
+  const [repairs, setRepairs] = useState([]);
+  const [recycling, setRecycling] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [actionNotice, setActionNotice] = useState('');
-  const [filterMode, setFilterMode] = useState('ALL'); // 'ALL' | 'ACTIVE' | 'COMPLETED'
+  const [filterMode, setFilterMode] = useState('ALL');
 
-  // Confirm Modal State
   const [confirmModalConfig, setConfirmModalConfig] = useState({
     isOpen: false,
     title: '',
@@ -65,132 +30,57 @@ export function VendorDashboard() {
     isDestructive: false,
   });
 
-  const vendor = user?.vendorProfile;
+  const loadQueue = React.useCallback(async () => {
+    if (!vendorId || !isVerified) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const [repairsResponse, recyclingResponse] = await Promise.all([
+        api.get(`/repairs/vendor/${vendorId}`),
+        api.get(`/recycling/vendor/${vendorId}`),
+      ]);
+      setRepairs(repairsResponse.data || []);
+      setRecycling(recyclingResponse.data || []);
+    } catch (err) {
+      setActionNotice(err.message || 'Could not load workshop assignments.');
+    } finally {
+      setLoading(false);
+    }
+  }, [vendorId, isVerified]);
 
-  // Initialize seed data on mount
   useEffect(() => {
-    ensurePrototypeDataSeeded();
-  }, []);
-
-  const persistRepairs = (updated) => {
-    setRepairs(updated);
-    try {
-      localStorage.setItem(LOCAL_VENDOR_REPAIRS, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Could not persist vendor repairs:', e);
-    }
-  };
-
-  const persistRecycling = (updated) => {
-    setRecycling(updated);
-    try {
-      localStorage.setItem(LOCAL_VENDOR_RECYCLING, JSON.stringify(updated));
-    } catch (e) {
-      console.warn('Could not persist vendor recycling:', e);
-    }
-  };
-
-  const toggleAccreditation = () => {
-    const next = !isVerified;
-    setIsVerified(next);
-    try {
-      localStorage.setItem(LOCAL_VENDOR_VERIFIED, next ? 'true' : 'false');
-    } catch {}
-    setActionNotice(
-      next
-        ? '✦ Accreditation Status: VERIFIED & ACCREDITED (All workbenches active).'
-        : 'Accreditation Status: PENDING REVIEW (Gated mode simulated).'
-    );
-  };
+    loadQueue();
+  }, [loadQueue]);
 
   const handleUpdateRepairStatus = async (repairId, nextStatus) => {
     setActionNotice('');
-    const updated = repairs.map((r) =>
-      r.id === repairId ? { ...r, status: nextStatus } : r
-    );
-    persistRepairs(updated);
-
-    const actionLabels = {
-      ACCEPTED: 'Accepted! Scheduled for hardware intake & bench evaluation.',
-      IN_PROGRESS: 'Under active repair & component micro-soldering.',
-      COMPLETED: 'Marked Completed! Customer notified for collection & +100 PTS awarded.',
-      REJECTED: 'Declined request. Re-routed to alternative accredited workshop.',
-    };
-
-    setActionNotice(
-      `✓ Repair Job #${repairId.substring(0, 10)}: ${actionLabels[nextStatus] || nextStatus}`
-    );
-
-    const targetJob = repairs.find((r) => r.id === repairId);
-    logPlatformActivity({
-      actorRole: 'VENDOR',
-      actorName: user?.vendorProfile?.businessName || 'Aegis Diagnostics Atelier',
-      actorEmail: user?.email || 'aegis@vestige.internal',
-      actionType: `REPAIR_${nextStatus}`,
-      category: 'REPAIR',
-      description: `Workshop updated repair job #${repairId.substring(0, 10)} to ${nextStatus}`,
-      targetEntity: 'RepairBooking',
-      targetId: repairId,
-      details: `${targetJob ? `${targetJob.brand || ''} ${targetJob.model || ''}` : 'Hardware repair'} • ${actionLabels[nextStatus] || nextStatus}`,
-      badge: 'VENDOR',
-      status: nextStatus,
-    });
-
-    // Attempt backend sync
     try {
       await api.patch(`/repairs/${repairId}/status`, {
         status: nextStatus,
         notes: `Progressed by craftsman to ${nextStatus}`,
       });
+      await loadQueue();
+      setActionNotice(`Repair job #${repairId.substring(0, 10)} updated to ${nextStatus}.`);
     } catch (err) {
-      console.warn('Backend sync failed, updated locally in workbench:', err);
+      setActionNotice(err.message || 'Could not update repair job.');
     }
   };
 
   const handleUpdateRecyclingStatus = async (requestId, nextStatus) => {
     setActionNotice('');
-    const updated = recycling.map((req) =>
-      req.id === requestId ? { ...req, status: nextStatus } : req
-    );
-    persistRecycling(updated);
-
-    const actionLabels = {
-      ACCEPTED: 'Accepted collection! Logistics vehicle queued.',
-      SCHEDULED: 'Logistics courier dispatched for doorstep retrieval.',
-      COMPLETED: 'Disassembly received at custody vault & circular points credited to patron!',
-      REJECTED: 'Declined pickup dispatch.',
-    };
-
-    setActionNotice(
-      `✓ E-Waste Parcel #${requestId.substring(0, 10)}: ${actionLabels[nextStatus] || nextStatus}`
-    );
-
-    const targetRec = recycling.find((r) => r.id === requestId);
-    logPlatformActivity({
-      actorRole: 'VENDOR',
-      actorName: user?.vendorProfile?.businessName || 'Aegis Diagnostics Atelier',
-      actorEmail: user?.email || 'aegis@vestige.internal',
-      actionType: `RECYCLING_${nextStatus}`,
-      category: 'RECYCLING',
-      description: `Workshop updated e-waste dispatch #${requestId.substring(0, 10)} to ${nextStatus}`,
-      targetEntity: 'RecyclingRequest',
-      targetId: requestId,
-      details: `${targetRec ? `${targetRec.brand || ''} ${targetRec.model || ''}` : 'E-waste item'} • ${actionLabels[nextStatus] || nextStatus}`,
-      badge: 'VENDOR',
-      status: nextStatus,
-    });
-
-    // Attempt backend sync
     try {
       await api.patch(`/recycling/${requestId}/status`, {
         status: nextStatus,
         notes: `Progressed by logistics partner to ${nextStatus}`,
       });
+      await loadQueue();
+      setActionNotice(`E-waste parcel #${requestId.substring(0, 10)} updated to ${nextStatus}.`);
     } catch (err) {
-      console.warn('Backend sync failed, updated locally in workbench:', err);
+      setActionNotice(err.message || 'Could not update collection.');
     }
   };
-
   const promptDeclineRepair = (repairId) => {
     setConfirmModalConfig({
       isOpen: true,
@@ -235,17 +125,17 @@ export function VendorDashboard() {
     return true;
   });
 
-  // Calculate prototype financial and operational stats
+  // Calculate operational stats from assigned jobs
   const completedJobsCount = repairs.filter((r) => r.status === 'COMPLETED').length;
   const activeJobsCount =
     repairs.filter((r) => r.status !== 'COMPLETED' && r.status !== 'REJECTED').length +
     recycling.filter((r) => r.status !== 'COMPLETED' && r.status !== 'REJECTED').length;
-  const totalRevenue = completedJobsCount * 3500 + 4200;
+
 
   const displayLocation =
     vendor?.address && vendor.address.trim()
       ? `${vendor.address}, ${vendor.city || ''}, ${vendor.state || ''} - ${vendor.pincode || ''}`
-      : '14/B Industrial Suburb, Peenya 2nd Stage, Bengaluru, Karnataka - 560058';
+      : 'Address not provided';
 
   return (
     <PageShell>
@@ -281,18 +171,13 @@ export function VendorDashboard() {
                 margin: '0.25rem 0 0',
               }}
             >
-              {vendor?.businessName || 'Aegis Diagnostics Atelier'}
+              {vendor?.businessName || 'Workshop'}
             </h1>
           </div>
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <Button
-              variant={isVerified ? 'subtle' : 'ornate'}
-              size="sm"
-              onClick={toggleAccreditation}
-              icon={<IconWrapper name={isVerified ? 'check' : 'shield'} size={16} />}
-            >
-              {isVerified ? 'Accredited (Active)' : 'Simulate Instant Accreditation'}
-            </Button>
+            <span role="status" style={{ alignSelf: 'center', color: 'var(--vestige-olive)' }}>
+              {isVerified ? 'Accredited (Active)' : 'Pending verification'}
+            </span>
             <Button
               variant="ghost"
               size="sm"
@@ -371,7 +256,7 @@ export function VendorDashboard() {
               Restorations Completed
             </span>
             <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', color: 'var(--vestige-moss)', marginTop: '0.2rem' }}>
-              {completedJobsCount + 12}
+              {completedJobsCount}
             </div>
             <span style={{ fontSize: '0.75rem', color: 'var(--vestige-ink-light)' }}>Verified customer pickups</span>
           </div>
@@ -388,9 +273,9 @@ export function VendorDashboard() {
               Total Revenue Disbursed
             </span>
             <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', color: 'var(--vestige-brass-dark)', marginTop: '0.2rem' }}>
-              ₹{totalRevenue.toLocaleString()}
+              —
             </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--vestige-olive-dark)' }}>Settled via Razorpay escrow</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--vestige-olive-dark)' }}>Payment metrics unavailable</span>
           </div>
 
           <div
@@ -405,7 +290,7 @@ export function VendorDashboard() {
               Quality Rating
             </span>
             <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.6rem', color: 'var(--vestige-espresso)', marginTop: '0.2rem' }}>
-              4.9 ★
+              {vendor?.ratingAvg ? `${vendor.ratingAvg} ★` : 'No ratings yet'}
             </div>
             <span style={{ fontSize: '0.75rem', color: 'var(--vestige-olive-dark)' }}>Accredited craftsman excellence</span>
           </div>
@@ -536,20 +421,7 @@ export function VendorDashboard() {
                   }}
                 >
                   <span>{isVerified ? 'VERIFIED & CERTIFIED ATELIER' : 'PENDING ADMINISTRATIVE AUDIT'}</span>
-                  <button
-                    onClick={toggleAccreditation}
-                    style={{
-                      background: 'none',
-                      border: '1px solid var(--vestige-brass)',
-                      borderRadius: 'var(--radius-xs)',
-                      padding: '2px 6px',
-                      fontSize: '0.72rem',
-                      cursor: 'pointer',
-                      color: 'var(--vestige-espresso)',
-                    }}
-                  >
-                    Switch Mode
-                  </button>
+
                 </div>
               </div>
               <div>
@@ -620,11 +492,9 @@ export function VendorDashboard() {
                 }}
               >
                 <p style={{ margin: '0 0 0.75rem 0', fontWeight: 'bold' }}>
-                  Accreditation simulated as PENDING.
+                  Accreditation is pending administrator review.
                 </p>
-                <Button variant="ornate" size="sm" onClick={toggleAccreditation}>
-                  Activate Accreditation to View & Accept Jobs
-                </Button>
+
               </div>
             ) : filteredRepairs.length === 0 ? (
               <ArchivalEmptyState

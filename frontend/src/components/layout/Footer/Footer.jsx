@@ -1,10 +1,12 @@
 import React from 'react';
 import Container from '../Container/Container';
 import VestigeLogo from '../../common/VestigeLogo/VestigeLogo';
+import { SUPPORT_PHONE } from '../../../config/support';
+import { getSupportWhatsAppLink } from '../../../utils/whatsapp';
 import styles from './Footer.module.css';
 
 export function Footer() {
-  const whatsappUrl = "https://wa.me/919989568711?text=Hello%20VESTIGE%20Archive%20Support%2C%20I%20have%20an%20inquiry%20regarding%20my%20device.";
+  const whatsappUrl = getSupportWhatsAppLink('Hello VESTIGE Support, I have an inquiry regarding my device.');
 
   return (
     <footer className={styles.footer} id="contact" role="contentinfo">
@@ -41,12 +43,12 @@ export function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               className={styles.whatsappButton}
-              aria-label="Contact VESTIGE Support on WhatsApp at +91 99895 68711"
+              aria-label={`Contact VESTIGE Support on WhatsApp at ${SUPPORT_PHONE}`}
             >
               <span className={styles.whatsappIcon}>💬</span>
               <div className={styles.whatsappText}>
                 <span className={styles.whatsappTitle}>WhatsApp Support</span>
-                <span className={styles.whatsappNumber}>+91 99895 68711</span>
+                <span className={styles.whatsappNumber}>{SUPPORT_PHONE}</span>
               </div>
             </a>
           </div>
