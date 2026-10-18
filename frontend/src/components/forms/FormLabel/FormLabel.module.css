@@ -5,8 +5,7 @@
   font-weight: 700;
   color: var(--vestige-espresso);
   margin-bottom: var(--space-2);
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .required {

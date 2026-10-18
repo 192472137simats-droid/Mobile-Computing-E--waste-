@@ -53,6 +53,7 @@ export function Bookings() {
     }
   }, []);
   useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- this effect loads remote data.
     loadBookings();
   }, [loadBookings]);
 

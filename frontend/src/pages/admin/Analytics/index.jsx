@@ -56,6 +56,7 @@ export function AdminAnalytics() {
   };
 
   useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- this effect loads remote data.
     loadData(datePreset);
   }, [datePreset]);
 

@@ -8,7 +8,7 @@ import Button from '../../../components/common/Button/Button';
 import ArchivalEmptyState from '../../../components/vintage/ArchivalEmptyState/ArchivalEmptyState';
 import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/ArchivalSkeleton';
 import ConfirmModal from '../../../components/common/ConfirmModal/ConfirmModal';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../contexts/useAuth';
 import api from '../../../services/api';
 
 export function VendorDashboard() {
@@ -51,6 +51,7 @@ export function VendorDashboard() {
   }, [vendorId, isVerified]);
 
   useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- this effect loads remote data.
     loadQueue();
   }, [loadQueue]);
 
@@ -297,7 +298,7 @@ export function VendorDashboard() {
         </div>
 
         {/* Status Filter Bar */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem', alignItems: 'center' }}>
           <span
             style={{
               fontSize: '0.82rem',
@@ -342,12 +343,12 @@ export function VendorDashboard() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
             gap: '1.5rem',
             marginBottom: '2rem',
           }}
         >
-          {/* Workshop Dossier */}
+          {/* Your business profile */}
           <LedgerCard
             variant="vendor"
             watermark="building"
@@ -361,8 +362,8 @@ export function VendorDashboard() {
                 label={isVerified ? 'VERIFIED' : 'PENDING REVIEW'}
               />
             }
-            title="Workshop Dossier"
-            subtitle="Accredited operational credentials"
+            title="Your business profile"
+            subtitle="Your business details and account status"
           >
             <div
               style={{
@@ -475,8 +476,8 @@ export function VendorDashboard() {
                 label={`${filteredRepairs.length} JOBS`}
               />
             }
-            title="Assigned Hardware Restorations"
-            subtitle="Patron requests allocated to your workbench for intake & repair"
+            title="Repair requests"
+            subtitle="Manage the repair requests assigned to your business"
           >
             {loading ? (
               <ArchivalSkeleton variant="card" height="120px" />
@@ -701,8 +702,8 @@ export function VendorDashboard() {
               label={`${filteredRecycling.length} PARCELS`}
             />
           }
-          title="Assigned E-Waste Doorstep Dispatches"
-          subtitle="Customer zero-landfill pickup requests allocated for ethical dismantling"
+          title="Recycling requests"
+          subtitle="Track and update your assigned recycling pickups"
         >
           {loading ? (
             <ArchivalSkeleton variant="card" height="120px" />
@@ -720,7 +721,7 @@ export function VendorDashboard() {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
                 gap: '1rem',
               }}
             >

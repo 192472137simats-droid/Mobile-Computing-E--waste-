@@ -70,6 +70,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (userRepository == null) return;
             Optional<User> userOpt = userRepository.findById(userUuid);
             if (userOpt.isEmpty() || !userOpt.get().isActive()) return;
+            if (payload.path("cv").asLong(0) != userOpt.get().getCredentialVersion()) return;
             UserPrincipal principal = UserPrincipal.fromEntity(userOpt.get());
 
             UsernamePasswordAuthenticationToken authentication =

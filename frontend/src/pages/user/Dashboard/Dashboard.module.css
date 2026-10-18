@@ -1,68 +1,152 @@
 .pageWrapper {
-  padding: 2.5rem 0 5rem;
+  padding: 42px 0 65px;
 }
-
-.platesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 3.5rem;
-}
-
-.actionsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.actionCard {
-  background-color: var(--vestige-ivory);
-  border: 1px solid var(--vestige-parchment-border);
-  border-radius: var(--radius-xs);
-  padding: 1.75rem 1.5rem;
-  box-shadow: var(--shadow-paper-sm);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 240px;
-  position: relative;
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
-}
-
-.actionCard:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-paper-md), 0 0 16px rgba(176, 141, 87, 0.2);
-  border-color: var(--vestige-brass);
-}
-
-.cardHead {
+.welcome {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  justify-content: space-between;
+  gap: 25px;
+  margin-bottom: 32px;
 }
-
-.cardHead h3 {
-  font-family: var(--font-serif);
-  font-size: 1.1rem;
+.eyebrow {
+  font-size: 10px;
   font-weight: 700;
-  color: var(--vestige-espresso);
-  margin: 0;
+  letter-spacing: 0.14em;
+  color: #4c7545;
 }
-
-.cardDesc {
-  font-family: var(--font-body);
-  font-size: 0.88rem;
-  line-height: 1.6;
-  color: var(--vestige-ink-light);
-  margin-bottom: 1.5rem;
+.welcome h1 {
+  margin: 9px 0;
+  font-size: clamp(27px, 3vw, 39px);
+  line-height: 1.2;
+  letter-spacing: -0.045em;
+  color: #29442f;
 }
-
-@media (max-width: 768px) {
+.welcome p,
+.sectionHead p {
+  font-size: 13px;
+  color: #6e7f65;
+}
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 13px 18px;
+  background: #2c6743;
+  color: white;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.primary:hover {
+  background: #205134;
+}
+.platesGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 42px;
+}
+.sectionHead {
+  margin-bottom: 22px;
+}
+.sectionHead h2 {
+  font-size: 23px;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  margin-bottom: 6px;
+  color: #2f4b35;
+}
+.actionsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.actionCard {
+  background: #fff;
+  border: 1px solid #dfe7d8;
+  border-radius: 14px;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.actionCard:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-paper-md);
+}
+.actionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: #edf5e5;
+  color: #477845;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+.actionCard:nth-child(2n) .actionIcon {
+  background: #e7f3ef;
+  color: #38756b;
+}
+.actionCard h3 {
+  font-size: 18px;
+  letter-spacing: -0.025em;
+  color: #314c35;
+  margin-bottom: 9px;
+}
+.actionCard p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #6d7d63;
+  margin-bottom: 22px;
+  flex: 1;
+}
+.actionLink {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #e7ecdf;
+  padding-top: 15px;
+  font-size: 12px;
+  font-weight: 650;
+  color: #3a6d3e;
+}
+.actionLink:hover {
+  color: #184c2b;
+}
+.error {
+  padding: 14px;
+  background: #fff0ee;
+  border-radius: 8px;
+  color: #a73737;
+  margin-bottom: 20px;
+}
+@media (max-width: 1000px) {
   .platesGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .actionsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .welcome {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .platesGrid,
+  .actionsGrid {
     grid-template-columns: 1fr;
+  }
+  .pageWrapper {
+    padding-top: 28px;
+  }
+  .primary {
+    width: 100%;
   }
 }

@@ -21,7 +21,7 @@ export function PageShell({
         {children}
       </main>
       <Footer />
-      <WhatsAppButton variant="floating" />
+      <WhatsAppButton variant="floating" label="Need help?" />
     </PaperTexture>
   );
 }

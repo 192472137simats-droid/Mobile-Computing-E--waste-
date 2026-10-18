@@ -25,6 +25,21 @@ export function IconWrapper({
 
   const renderPath = () => {
     switch (name) {
+      case 'calendar':
+        return <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4M17 3v4M3 10h18M7 14h3M14 14h3M7 18h3" /></>;
+      case 'recycle':
+        return (
+          <>
+            <path d="M8 7l3-5 4 7M16 9h-4V5M18 11l4 7H14M14 18l3-3M14 18l3 3M11 18H3l4-7M7 11l1 4M7 11l-4 1" />
+          </>
+        );
+      case 'gift':
+        return (
+          <>
+            <rect x="3" y="8" width="18" height="4" rx="1" />
+            <path d="M5 12v9h14v-9M12 8v13M12 8C6 8 5 6 6 4s5-1 6 4ZM12 8c6 0 7-2 6-4s-5-1-6 4Z" />
+          </>
+        );
       case 'crest':
         return (
           <>

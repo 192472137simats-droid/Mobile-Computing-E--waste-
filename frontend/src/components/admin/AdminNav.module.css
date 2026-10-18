@@ -1,45 +1,33 @@
 .adminNav {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 5px;
   overflow-x: auto;
-  padding: 0.75rem 1rem;
-  background: var(--vestige-espresso);
-  border: 1.5px solid var(--vestige-brass);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(251, 247, 238, 0.1);
-  border-radius: var(--radius-xs);
-  margin-bottom: 2rem;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  margin-bottom: 28px;
   scrollbar-width: thin;
 }
-
 .navLink {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.9rem;
-  font-size: 0.82rem;
-  font-family: var(--font-serif);
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--vestige-parchment);
-  text-decoration: none;
-  border-radius: var(--radius-xs);
-  border: 1px solid transparent;
+  gap: 7px;
+  padding: 11px 14px;
+  font-size: 12px;
+  font-weight: 550;
+  color: #64765e;
+  border-radius: 7px;
   white-space: nowrap;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast);
 }
-
 .navLink:hover {
-  color: var(--vestige-brass-light);
-  background: rgba(176, 141, 87, 0.15);
-  border-color: rgba(176, 141, 87, 0.3);
+  color: #315d37;
+  background: #f1f6ec;
 }
-
 .activeLink {
-  color: var(--vestige-espresso) !important;
-  background: radial-gradient(circle at 35% 35%, var(--vestige-brass-light) 0%, var(--vestige-brass) 100%) !important;
-  border: 1px solid var(--vestige-brass-light) !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+  background: #e7f1de;
+  color: #2c6137;
   font-weight: 700;
 }

@@ -28,6 +28,7 @@ export function AdminRecyclingPage() {
     }
   };
   useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- this effect loads remote data.
     loadRecycling();
   }, []);
 

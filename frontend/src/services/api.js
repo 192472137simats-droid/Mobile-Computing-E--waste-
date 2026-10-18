@@ -4,16 +4,9 @@
  * JWT token injection, and concurrent GET request deduplication.
  */
 
-const DEFAULT_PROD_API = 'https://vestige-owfd.onrender.com/api';
-
 function getBaseUrl() {
   const envUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
-  let base = envUrl;
-  
-  // An explicit /api supports a frontend bundled with the backend on one origin.
-  if (!base) {
-    base = import.meta.env.PROD ? DEFAULT_PROD_API : '/api';
-  }
+  let base = envUrl || '/api';
 
   // Auto-correct typo where environment variable was configured with /ap instead of /api
   if (base.endsWith('/ap')) {

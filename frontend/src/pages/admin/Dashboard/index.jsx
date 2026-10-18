@@ -12,7 +12,7 @@ import KpiMetricCard from '../../../components/analytics/KpiMetricCard';
 import ArchivalSkeleton from '../../../components/vintage/ArchivalSkeleton/ArchivalSkeleton';
 import ArchivalEmptyState from '../../../components/vintage/ArchivalEmptyState/ArchivalEmptyState';
 import ConfirmModal from '../../../components/common/ConfirmModal/ConfirmModal';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../contexts/useAuth';
 import { useTranslation } from '../../../i18n/useTranslation';
 import apiClient from '../../../services/apiClient';
 
@@ -58,6 +58,7 @@ export function AdminDashboard() {
     }
   };
   useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- this effect loads remote data.
     loadData(range);
   }, [range]);
 
@@ -126,7 +127,7 @@ export function AdminDashboard() {
           <KpiMetricCard
             title="Total Registered Users"
             value={totalUsers}
-            subtitle="Patron network ledger"
+            subtitle="Your registered community"
             icon="crest"
             badgeLabel="TOTAL"
             loading={loading}
@@ -134,7 +135,7 @@ export function AdminDashboard() {
           <KpiMetricCard
             title="Active Users"
             value={activeUsers}
-            subtitle="Operational clearance"
+            subtitle="Accounts currently active"
             icon="shield"
             variant="moss"
             badgeLabel="ACTIVE"
@@ -152,7 +153,7 @@ export function AdminDashboard() {
           <KpiMetricCard
             title="Total Workshops"
             value={platformKpis?.totalVendors ?? 0}
-            subtitle="Accredited artisans"
+            subtitle="Registered service partners"
             icon="tools"
             variant="olive"
             badgeLabel="ATELIERS"
@@ -179,7 +180,7 @@ export function AdminDashboard() {
           <KpiMetricCard
             title="Completed Recycling"
             value={platformKpis?.completedRecycling ?? 0}
-            subtitle="Zero-landfill collections"
+            subtitle="Completed recycling requests"
             icon="recycling"
             variant="olive"
             badgeLabel="RECYCLED"
@@ -197,7 +198,7 @@ export function AdminDashboard() {
         </div>
 
         {/* Monthly Registration Activity & Verification Queue */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
           {/* Registration Activity Chart */}
           <LedgerCard
             variant="admin"
@@ -272,7 +273,7 @@ export function AdminDashboard() {
                 label={`${pendingVendors.length} PENDING`}
               />
             }
-            title="Partner Accreditation Queue"
+            title="Vendor verification"
             subtitle="Verify trade licenses and workshop capabilities"
           >
             {loading ? (
@@ -280,7 +281,7 @@ export function AdminDashboard() {
             ) : pendingVendors.length === 0 ? (
               <ArchivalEmptyState
                 illustration="building"
-                title="Accreditation Queue Clear"
+                title="No pending verifications"
                 description="No partner workshop or artisan applications awaiting administrative verification."
               />
             ) : (
@@ -332,13 +333,13 @@ export function AdminDashboard() {
                 label="LIVE FEED"
               />
             }
-            title="Live Patron & Vendor Activity Stream"
-            subtitle="Real-time telemetry across registered users, diagnostic submissions, workshop progressions, and logistics"
+            title="Recent platform activity"
+            subtitle="Recent registrations, assessments, and service updates"
           >
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
               <Link to="/admin/audit" style={{ textDecoration: 'none' }}>
                 <Button variant="ghost" size="sm" icon={<IconWrapper name="arrow-right" size={14} />}>
-                  Access Full Audit Ledger ({recentActivities.length}+ records) →
+                  View audit history ({recentActivities.length}+ records) →
                 </Button>
               </Link>
             </div>

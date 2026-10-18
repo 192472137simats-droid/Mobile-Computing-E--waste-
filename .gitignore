@@ -23,6 +23,7 @@ scratch/
 backend/scratch/
 test_auth.mjs
 *.mjs
+!scripts/smoke-workflows.mjs
 
 # Environment variables & local secrets
 .env

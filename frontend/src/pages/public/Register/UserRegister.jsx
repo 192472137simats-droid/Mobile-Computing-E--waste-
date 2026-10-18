@@ -10,7 +10,7 @@ import PasswordInput from '../../../components/forms/PasswordInput/PasswordInput
 import Button from '../../../components/common/Button/Button';
 import IconWrapper from '../../../components/common/IconWrapper/IconWrapper';
 import Divider from '../../../components/common/Divider/Divider';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../contexts/useAuth';
 import styles from '../Login/AuthForms.module.css';
 
 const LANGUAGE_OPTIONS = [

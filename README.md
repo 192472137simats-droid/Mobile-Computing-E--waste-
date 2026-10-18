@@ -160,18 +160,19 @@ The example files are [`backend/.env.example`](backend/.env.example) and [`front
 | `APP_BOOTSTRAP_ADMIN_EMAIL`, `APP_BOOTSTRAP_ADMIN_PASSWORD` | Optional initial production administrator provisioning. |
 | `CORS_ALLOWED_ORIGINS` | Comma separated frontend origins allowed by the API. |
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | Required for actual Razorpay checkout and server verification. |
+| `APP_PUBLIC_BASE_URL`, `MAIL_FROM`, `SPRING_MAIL_*` | Public frontend URL and SMTP settings for password-reset emails. |
 | `VITE_API_BASE_URL` | Browser visible API URL, including `/api`. |
 
-Keep secrets out of the frontend and Git. The Railway demo uses its own fresh PostgreSQL database and the `prod,railway` profiles with Hibernate schema creation. The separate Supabase deployment path requires the migrations in `supabase/migrations` to be applied in order. See [Railway deployment notes](docs/operations/RAILWAY_DEPLOYMENT.md), [other deployment guidance](docs/operations/DEPLOYMENT_GUIDE.md), and the [operations runbook](docs/operations/OPERATIONAL_RUNBOOK.md).
+Keep secrets out of the frontend and Git. A new Railway deployment uses its own fresh PostgreSQL database, the `prod,railway` profiles, and Flyway to create the schema. Hibernate validates the result. The separate Supabase deployment path uses the migrations in `supabase/migrations`. See [Railway deployment notes](docs/operations/RAILWAY_DEPLOYMENT.md), [other deployment guidance](docs/operations/DEPLOYMENT_GUIDE.md), and the [operations runbook](docs/operations/OPERATIONAL_RUNBOOK.md).
 
 ### Production configuration sequence
 
-1. Provision PostgreSQL and apply the SQL files in `supabase/migrations` in filename order.
-2. Create the application database role and set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` in the backend host.
-3. Set `SPRING_PROFILES_ACTIVE=prod`, a strong `JWT_SECRET`, and the allowed frontend origin.
+1. Provision a **fresh** PostgreSQL database for Railway. Flyway applies `backend/src/main/resources/db/migration` on first startup. Do not point this baseline at an existing populated database without a migration plan.
+2. Set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` in the backend host; the database role must be able to create tables and indexes.
+3. Set `SPRING_PROFILES_ACTIVE=prod,railway`, a strong `JWT_SECRET`, and the allowed frontend origin.
 4. Set the initial admin email and password if the first production admin has not yet been created.
 5. Configure the frontend's `VITE_API_BASE_URL` to the deployed API endpoint and rebuild the frontend.
-6. Add Razorpay credentials only when a payment gateway environment is ready for an end to end checkout test.
+6. Set `APP_PUBLIC_BASE_URL`, `MAIL_FROM`, and `SPRING_MAIL_*` when an SMTP provider is ready. Add Razorpay credentials when a payment gateway environment is ready for an end to end checkout test.
 7. Check the liveness and readiness endpoints, then exercise login and the three role workflows.
 
 `backend/.env.example` is a template only. A `.env` file is not automatically imported into the Spring Boot process. Put values in the host environment or explicitly load them through your launch configuration.
@@ -223,10 +224,10 @@ At the last local check on **8 October 2026**, 57 backend tests passed, the fron
 
 ## Current limitations and next steps
 
-- **Live payments:** Razorpay keys were unavailable for the local check. Checkout correctly reports a configuration error without them; a real order and callback still need sandbox or production credential testing.
-- **Cloud workflow:** The Railway web app and PostgreSQL are live, but complete user and vendor flows have not been exercised against this fresh cloud database. The local browser flow was verified using H2.
-- **Schema management:** The Railway demo currently uses Hibernate `ddl-auto=update`. Review and apply managed migrations before treating it as a long lived production system.
-- **Password recovery:** A self service reset flow is not implemented. Login pages state this explicitly.
+- **Live payments:** Mocked Razorpay order, capture, and signature tests pass. A real gateway order and callback still require test credentials; checkout reports a configuration error without them.
+- **Cloud workflow:** A repeatable API check now covers user assessment, repair, recycling, vendor status updates, rewards, and admin visibility (`node scripts/smoke-workflows.mjs --write`). It passes locally with H2. It has not run on a new Railway deployment because that deployment has not been created yet. The script creates records and requires explicit `--write` plus role credentials for nonlocal environments.
+- **Schema management:** A fresh Railway PostgreSQL database can be initialized by the backend's Flyway migrations in `backend/src/main/resources/db/migration`. The older Railway demo used Hibernate `ddl-auto=update`; do not point these baseline migrations at that populated database without a reviewed migration plan.
+- **Password recovery:** One-use, 30-minute reset links and session invalidation are implemented and tested with a fake mail sender. Configure SMTP, `MAIL_FROM`, and `APP_PUBLIC_BASE_URL` to send real reset emails; until then the endpoint returns a service-unavailable response.
 - **Environmental estimates:** Values are fixed category benchmarks in code. They should be calibrated against traceable data before being used as verified impact measurements.
 - **Vendor qualification and operations:** Real vendor certification, pickup logistics, and downstream recycling evidence require an operational process outside the current software demo.
 - **Documentation drift:** Some older design and deployment documents describe planned integrations. Use this README and the running routes as the implementation reference.

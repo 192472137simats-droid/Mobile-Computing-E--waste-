@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import PageShell from '../components/layout/PageShell/PageShell';
 import Container from '../components/layout/Container/Container';
 import LedgerCard from '../components/vintage/LedgerCard/LedgerCard';

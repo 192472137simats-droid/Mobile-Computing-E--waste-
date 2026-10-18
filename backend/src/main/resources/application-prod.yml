@@ -2,10 +2,12 @@ server:
   port: ${PORT:8080}
 
 spring:
+  flyway:
+    enabled: true
   jpa:
     show-sql: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: ${JPA_DDL_AUTO:validate}
 
 logging:
   level:

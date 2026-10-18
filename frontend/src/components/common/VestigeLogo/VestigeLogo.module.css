@@ -1,307 +1,91 @@
-.logoContainer {
+.logo {
   display: inline-flex;
   align-items: center;
-  -webkit-user-select: none;
-  user-select: none;
-  text-decoration: none;
+  gap: 10px;
+  color: #214f38;
 }
-
-/* =========================================
-   EMBLEM
-========================================= */
-
-.emblemWrapper {
-  position: relative;
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.mark {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 37px;
+  height: 37px;
+  border-radius: 11px;
+  background: #e8f2df;
+  padding: 5px;
+  color: #326c45;
 }
-
-.emblemSvg {
-  display: block;
-  overflow: visible;
-  transition:
-    transform 220ms ease,
-    filter 220ms ease;
+.mark svg {
+  width: 100%;
+  height: 100%;
 }
-
-.logoContainer:hover .emblemSvg {
-  transform: scale(1.025);
-}
-
-/* =========================================
-   SIZES
-========================================= */
-
-.sm {
-  --wordmark-size: 20px;
-  --tagline-size: 6.5px;
-  --letter-spacing: 0.22em;
-  --tagline-spacing: 0.16em;
-  --logo-gap: 9px;
-}
-
-.md {
-  --wordmark-size: 29px;
-  --tagline-size: 8px;
-  --letter-spacing: 0.19em;
-  --tagline-spacing: 0.18em;
-  --logo-gap: 12px;
-}
-
-.lg {
-  --wordmark-size: 38px;
-  --tagline-size: 10px;
-  --letter-spacing: 0.21em;
-  --tagline-spacing: 0.2em;
-  --logo-gap: 15px;
-}
-
-.xl {
-  --wordmark-size: 51px;
-  --tagline-size: 12px;
-  --letter-spacing: 0.22em;
-  --tagline-spacing: 0.22em;
-  --logo-gap: 19px;
-}
-
-/* =========================================
-   TYPOGRAPHY
-========================================= */
-
-.typographyBlock {
+.words {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-  margin-left: var(--logo-gap);
-  line-height: 1;
 }
-
 .wordmark {
-  font-family:
-    "Cormorant Garamond",
-    "Bodoni 72",
-    "Didot",
-    "Times New Roman",
-    serif;
-
-  font-size: var(--wordmark-size);
-  font-weight: 600;
-  letter-spacing: var(--letter-spacing);
-  line-height: 0.9;
-  white-space: nowrap;
+  font-family: var(--font-ui);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.065em;
+  line-height: 1.15;
 }
-
+.wordmark > span {
+  color: #6c9f55;
+}
 .tagline {
-  font-family:
-    "Cormorant Garamond",
-    "Baskerville",
-    "Georgia",
-    serif;
-
-  font-size: var(--tagline-size);
-  font-weight: 500;
-  letter-spacing: var(--tagline-spacing);
-  text-transform: uppercase;
-  line-height: 1.3;
-  white-space: nowrap;
-  opacity: 0.72;
+  font-size: 10px;
+  font-weight: 450;
+  color: #6a7e6e;
+  margin-top: 5px;
+  letter-spacing: 0.01em;
 }
-
-/* =========================================
-   DIVIDER (between wordmark and tagline)
-========================================= */
-
-.divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin: 2px 0;
-  color: currentColor;
-}
-
-.dividerLine {
-  flex: 1 1 auto;
-  height: 1px;
-  max-width: 34px;
-  background: currentColor;
-  opacity: 0.5;
-}
-
-.dividerOrnament {
-  display: flex;
-  flex: 0 0 auto;
-  opacity: 0.85;
-}
-
-/* =========================================
-   DARK / WALNUT
-========================================= */
-
-.dark .wordmark {
-  color: #e1c77a;
-  text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.08),
-    0 2px 5px rgba(0, 0, 0, 0.25);
-}
-
-.dark .tagline {
-  color: #d7c49b;
-}
-
-.dark .divider,
-.dark .dividerOrnament {
-  color: #d7c49b;
-}
-
-/* =========================================
-   LIGHT / PARCHMENT
-========================================= */
-
-.light .wordmark {
-  color: #3b2b20;
-  text-shadow: none;
-}
-
-.light .tagline {
-  color: #715d47;
-}
-
-.light .divider,
-.light .dividerOrnament {
-  color: #715d47;
-}
-
-/* =========================================
-   GOLD
-========================================= */
-
-.gold .wordmark {
-  color: #c39b3e;
-}
-
-.gold .tagline {
-  color: #9d7a36;
-}
-
-.gold .divider,
-.gold .dividerOrnament {
-  color: #9d7a36;
-}
-
-/* =========================================
-   HORIZONTAL
-========================================= */
-
-.horizontal {
-  flex-direction: row;
-}
-
-/* =========================================
-   VERTICAL
-========================================= */
-
 .vertical {
   flex-direction: column;
   text-align: center;
 }
-
-.vertical .typographyBlock {
-  align-items: center;
-  margin-left: 0;
-  margin-top: 10px;
-}
-
-.vertical .wordmark {
-  letter-spacing: 0.24em;
-}
-
-.vertical .tagline {
-  max-width: 190px;
-  white-space: normal;
-}
-
-/* =========================================
-   BADGE
-========================================= */
-
 .badge {
-  flex-direction: column;
-  padding: 14px 18px;
-  border: 1px solid rgba(185, 145, 56, 0.35);
-  background:
-    linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.025),
-      rgba(0, 0, 0, 0.08)
-    );
+  padding: 8px 12px;
+  border: 1px solid #dfe7da;
+  border-radius: 12px;
 }
-
-.badge .typographyBlock {
-  align-items: center;
-  margin-left: 0;
-  margin-top: 8px;
+.sm .mark {
+  width: 30px;
+  height: 30px;
 }
-
-.badge .wordmark {
-  font-size: calc(var(--wordmark-size) * 0.82);
+.sm .wordmark {
+  font-size: 23px;
 }
-
-.badge .tagline {
-  text-align: center;
+.lg .mark {
+  width: 45px;
+  height: 45px;
 }
-
-.badge .divider {
-  margin: 4px 0;
+.lg .wordmark {
+  font-size: 33px;
 }
-
-/* =========================================
-   ICON ONLY
-========================================= */
-
-.logoContainer:not(.horizontal):not(.vertical):not(.badge) {
-  justify-content: center;
+.xl .mark {
+  width: 58px;
+  height: 58px;
 }
-
-/* =========================================
-   ACCESSIBILITY
-========================================= */
-
-@media (prefers-reduced-motion: reduce) {
-  .emblemSvg {
-    transition: none;
+.xl .wordmark {
+  font-size: 42px;
+}
+.gold {
+  color: #d7efba;
+}
+@media (max-width: 440px) {
+  .logo {
+    gap: 6px;
   }
-
-  .logoContainer:hover .emblemSvg {
-    transform: none;
+  .md .wordmark {
+    font-size: 24px;
+  }
+  .md .mark {
+    width: 29px;
+    height: 29px;
+    border-radius: 8px;
   }
 }
 
-/* =========================================
-   MOBILE
-========================================= */
-
-@media (max-width: 640px) {
-  .md {
-    --wordmark-size: 25px;
-    --tagline-size: 7px;
-    --logo-gap: 9px;
-  }
-
-  .lg {
-    --wordmark-size: 32px;
-    --tagline-size: 8px;
-  }
-
-  .xl {
-    --wordmark-size: 42px;
-    --tagline-size: 9px;
-  }
-
-  .tagline {
-    letter-spacing: 0.12em;
-  }
+@media (max-width: 360px) {
+  .md .mark { display: none; }
 }

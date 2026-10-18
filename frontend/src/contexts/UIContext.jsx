@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import api from '../services/api';
-
-export const UIContext = createContext(null);
+import { UIContext } from './UIContextState';
 
 const STORAGE_LANG_KEY = 'vestige_lang';
 const VALID_LANGS = ['en', 'ta', 'te', 'ja'];
@@ -57,8 +56,4 @@ export function UIProvider({ children }) {
   );
 }
 
-export function useUI() {
-  return useContext(UIContext);
-}
-
-export default UIContext;
+export default UIProvider;

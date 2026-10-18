@@ -1,6 +1,5 @@
-# Use only with a fresh Railway PostgreSQL database; existing Supabase schemas
-# continue to use their migrations and the prod profile without this override.
+# Flyway creates and updates a fresh Railway PostgreSQL schema. Hibernate verifies it.
 spring:
   jpa:
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update}
+      ddl-auto: ${JPA_DDL_AUTO:validate}

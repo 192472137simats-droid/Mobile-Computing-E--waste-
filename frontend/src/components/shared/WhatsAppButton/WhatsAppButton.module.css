@@ -81,7 +81,10 @@
   }
 
   .floatingButton {
-    padding: 0.65rem 1rem;
-    font-size: 0.8rem;
+    padding: 12px;
+    width: 48px;
+    height: 48px;
   }
+
+  .floatingButton span { display: none; }
 }

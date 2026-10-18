@@ -6,10 +6,7 @@
   min-height: 85vh;
   position: relative;
   /* Rich Deep Walnut Desk Canvas with Warm Gold Vignette */
-  background-color: var(--vestige-walnut);
-  background-image: 
-    radial-gradient(ellipse at 50% 15%, rgba(212, 175, 55, 0.18) 0%, transparent 65%),
-    radial-gradient(circle at 50% 85%, rgba(24, 16, 10, 0.95) 0%, transparent 100%);
+  background-color: #f0f5eb;
 }
 
 .authContainer {
@@ -32,16 +29,15 @@
   font-family: var(--font-serif);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--vestige-gold-light);
+  letter-spacing: 0;
+  color: #50754b;
   transition: color var(--transition-fast);
   text-decoration: none;
   opacity: 0.9;
 }
 
 .backLink:hover {
-  color: var(--vestige-cream-pure);
+  color: #254b2d;
   opacity: 1;
   transform: translateX(-2px);
 }
@@ -104,6 +100,23 @@
 
 .fullWidthBtn {
   width: 100%;
+}
+
+.submitBtn {
+  width: 100%;
+}
+.authFooter,
+.switchPrompt {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--vestige-ink-light);
+}
+.actionInlineBtn {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+.actionInlineBtn:hover {
+  text-decoration: underline;
 }
 
 .switchAuthBlock {

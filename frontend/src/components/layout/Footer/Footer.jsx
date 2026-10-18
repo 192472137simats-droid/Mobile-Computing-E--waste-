@@ -1,73 +1,62 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Container from '../Container/Container';
 import VestigeLogo from '../../common/VestigeLogo/VestigeLogo';
-import { SUPPORT_PHONE } from '../../../config/support';
 import { getSupportWhatsAppLink } from '../../../utils/whatsapp';
 import styles from './Footer.module.css';
 
 export function Footer() {
-  const whatsappUrl = getSupportWhatsAppLink('Hello VESTIGE Support, I have an inquiry regarding my device.');
-
+  const whatsappUrl = getSupportWhatsAppLink(
+    'Hello VESTIGE Support, I have a question about my device.',
+  );
   return (
-    <footer className={styles.footer} id="contact" role="contentinfo">
+    <footer className={styles.footer} id="contact">
       <Container size="lg">
-        {/* Brand & Philosophy Header */}
-        <div className={styles.brandRow}>
-          <VestigeLogo
-            variant="vertical"
-            size="lg"
-            theme="dark"
-            tagline="Circular Luxury, Timeless Impact"
-          />
-
-          <div className={styles.quoteBlock}>
-            <p className={styles.quote}>
-              &ldquo;We don&apos;t just repair devices, we restore stories.&rdquo;
+        <div className={styles.grid}>
+          <div className={styles.brand}>
+            <Link to="/" aria-label="VESTIGE Home">
+              <VestigeLogo tagline="" />
+            </Link>
+            <p>
+              Better choices for your electronics.
+              <br />A little care for what comes next.
             </p>
-            <div className={styles.philosophy}>
-              <span>REPAIR</span>
-              <span className={styles.dot}>✦</span>
-              <span>REUSE</span>
-              <span className={styles.dot}>✦</span>
-              <span>RECYCLE</span>
-              <span className={styles.dot}>✦</span>
-              <span>REWARD</span>
-            </div>
           </div>
-
-          {/* Official WhatsApp Archival Support */}
-          <div className={styles.supportBox}>
-            <span className={styles.supportLabel}>Direct Archival Concierge</span>
+          <div className={styles.links}>
+            <strong>Get involved</strong>
+            <Link to="/user/assessment">Assess a device</Link>
+            <Link to="/register/user">Create an account</Link>
+            <Link to="/register/vendor">Become a partner</Link>
+          </div>
+          <div className={styles.links}>
+            <strong>Your workspace</strong>
+            <Link to="/login/user">User portal</Link>
+            <Link to="/login/vendor">Vendor portal</Link>
+            <Link to="/login/admin">Admin portal</Link>
+          </div>
+          <div className={styles.links}>
+            <strong>Here to help</strong>
+            <p>A question about your next step?</p>
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={styles.whatsappButton}
-              aria-label={`Contact VESTIGE Support on WhatsApp at ${SUPPORT_PHONE}`}
+              className={styles.support}
             >
-              <span className={styles.whatsappIcon}>💬</span>
-              <div className={styles.whatsappText}>
-                <span className={styles.whatsappTitle}>WhatsApp Support</span>
-                <span className={styles.whatsappNumber}>{SUPPORT_PHONE}</span>
-              </div>
+              Chat with us <span aria-hidden="true">↗</span>
             </a>
           </div>
         </div>
-
-        <div className={styles.dividerRule} />
-
-        {/* Bottom Metadata */}
-        <div className={styles.bottomBar}>
-          <p className={styles.copyright}>
-            &copy; {new Date().getFullYear()} VESTIGE. Unified Circular Economy Platform. All archival records reserved.
-          </p>
-          <p className={styles.motto}>
-            AUTHENTIC HERITAGE &bull; TIMELESS TECHNOLOGY &bull; CIRCULAR FUTURE
-          </p>
+        <div className={styles.bottom}>
+          <span>
+            © {new Date().getFullYear()} VESTIGE. All rights reserved.
+          </span>
+          <span>
+            Repair. Reuse. Recycle. <span className={styles.dot}>●</span>
+          </span>
         </div>
       </Container>
     </footer>
   );
 }
-
 export default Footer;

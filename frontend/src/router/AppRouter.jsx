@@ -9,6 +9,7 @@ const PortalsPage = lazy(() => import('../pages/public/Portals'));
 const UserLogin = lazy(() => import('../pages/public/Login/UserLogin'));
 const AdminLogin = lazy(() => import('../pages/public/Login/AdminLogin'));
 const VendorLogin = lazy(() => import('../pages/public/Login/VendorLogin'));
+const PasswordRecovery = lazy(() => import('../pages/public/Login/PasswordRecovery'));
 const UserRegister = lazy(() => import('../pages/public/Register/UserRegister'));
 const VendorRegister = lazy(() => import('../pages/public/Register/VendorRegister'));
 const NotFoundPage = lazy(() => import('../pages/public/NotFound'));
@@ -50,6 +51,8 @@ export function AppRouter() {
         <Route path="/login/admin" element={<AdminLogin />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/login/vendor" element={<VendorLogin />} />
+        <Route path="/forgot-password" element={<PasswordRecovery />} />
+        <Route path="/reset-password" element={<PasswordRecovery />} />
         <Route path="/register/user" element={<UserRegister />} />
         <Route path="/register/vendor" element={<VendorRegister />} />
 

@@ -1,158 +1,164 @@
-/* ==============================================================================
-   VESTIGE DESIGN TOKENS — Master Heritage Archival System
-   Aesthetic: Warm medium-burn aged parchment, deep walnut desk, antique gold filigree,
-              aged paper ledgers, muted olive sustainability, and faded sepia ink.
-   ============================================================================== */
-
+/* VESTIGE — modern circular technology palette.
+   Legacy token names remain aliases so all existing feature screens share the theme. */
 :root {
-  /* --- 1. Master Palette --- */
-  --vestige-walnut:          #2B1B12;   /* Deep walnut wood / desk / navigation */
-  --vestige-walnut-dark:     #1E120A;   /* Darkest walnut / header base */
-  --vestige-walnut-light:    #3A2618;   /* Dark coffee / elevated dark panels */
-  --vestige-coffee:          #3A2618;   /* Rich dark coffee */
-  --vestige-brown-antique:   #5A3B21;   /* Antique brown leather */
-  --vestige-bronze:          #7A542E;   /* Warm bronze */
-  --vestige-bronze-light:    #8C6E3A;   /* Light bronze */
-  
-  --vestige-gold-royal:      #D4AF37;   /* Royal gold highlight */
-  --vestige-gold-antique:    #B8860B;   /* Classic antique gold */
-  --vestige-gold-aged:       #C49A45;   /* Aged gold border / rule */
-  --vestige-gold-soft:       #D4AF63;   /* Soft antique gold */
-  --vestige-gold-light:      #EEC97A;   /* Light luminous gold */
-  --vestige-gold-pale:       #F2D89A;   /* Pale gold leaf */
-  
-  --vestige-parchment:       #F7ECD7;   /* Primary warm medium-burn parchment background */
-  --vestige-parchment-base:  #E8D7B5;   /* Aged parchment base */
-  --vestige-parchment-dark:  #DEC79E;   /* Deep aged parchment */
-  --vestige-parchment-edge:  #CBB998;   /* Toasted paper edge rule */
-  
-  --vestige-aged-paper:      #EAD9B8;   /* Card & container surface */
-  --vestige-aged-paper-dark: #D8C39A;   /* Deep paper panel */
-  
-  --vestige-cream:           #FAF4E8;   /* Readable cream content surface (never sterile white) */
-  --vestige-cream-pure:      #FDF9F0;   /* Brightest warm paper highlight */
-  --vestige-ivory:           #F3E6C8;   /* Soft ivory stationer */
-  
-  --vestige-ink:             #221810;   /* Archival dark brown-black ink */
-  --vestige-ink-light:       #52473D;   /* Faded sepia / secondary reading ink */
-  --vestige-ink-muted:       #766A5D;   /* Manuscript annotation ink */
-  --vestige-sepia:           #8A6A45;   /* Warm faded sepia */
-  
-  --vestige-olive:           #68704A;   /* Muted botanical olive (sustainability/vendor) */
-  --vestige-olive-dark:      #465038;   /* Deep forest olive */
-  --vestige-olive-light:     #828C5E;   /* Soft lichen green */
-  
-  --vestige-rust:            #8A2E1C;   /* Sealed wax crimson / danger */
-  --vestige-rust-light:      #A33B26;   /* Bright wax red */
-  
-  --vestige-moss:            #38553D;   /* Ledger moss green / success */
-  --vestige-brass:           #A8834A;   /* Burnished brass */
-  --vestige-brass-dark:      #826330;   /* Engraved brass */
-
-  /* --- 2. Semantic Surfaces & Hierarchy --- */
-  --color-surface-base:       var(--vestige-parchment);
-  --color-surface-primary:    var(--vestige-cream);
-  --color-surface-elevated:   var(--vestige-aged-paper);
-  --color-surface-dark:       var(--vestige-walnut);
+  color-scheme: light;
+  --vestige-walnut: #244b36;
+  --vestige-walnut-dark: #193b28;
+  --vestige-walnut-light: #365f44;
+  --vestige-coffee: #2b5038;
+  --vestige-brown-antique: #42634b;
+  --vestige-bronze: #3e704d;
+  --vestige-bronze-light: #7a9874;
+  --vestige-gold-royal: #4e8755;
+  --vestige-gold-antique: #377748;
+  --vestige-gold-aged: #c6d9bf;
+  --vestige-gold-soft: #b5cfa9;
+  --vestige-gold-light: #deefcc;
+  --vestige-gold-pale: #eef7e4;
+  --vestige-gold: #4d7e4a;
+  --vestige-gold-dark: #3d6842;
+  --vestige-parchment: #f5f8f2;
+  --vestige-parchment-base: #edf3e8;
+  --vestige-parchment-dark: #e5eedf;
+  --vestige-parchment-edge: #d8e3d1;
+  --vestige-parchment-light: #f9fbf6;
+  --vestige-parchment-border: #dfe7d9;
+  --vestige-aged-paper: #f0f5ec;
+  --vestige-aged-paper-dark: #e6eddf;
+  --vestige-cream: #ffffff;
+  --vestige-cream-pure: #ffffff;
+  --vestige-ivory: #ffffff;
+  --vestige-ivory-warm: #ffffff;
+  --vestige-aged-ivory: #f5f8f2;
+  --vestige-parchment-white: #ffffff;
+  --vestige-espresso-light: #365f44;
+  --vestige-sepia-light: #dfe7d9;
+  --vestige-sepia-mid: #6c8066;
+  --vestige-espresso: #203b29;
+  --vestige-ink: #24372b;
+  --vestige-ink-light: #61715e;
+  --vestige-ink-muted: #72816c;
+  --vestige-sepia: #6c8066;
+  --vestige-olive: #428257;
+  --vestige-olive-dark: #286441;
+  --vestige-olive-light: #6d9e62;
+  --vestige-rust: #b33838;
+  --vestige-crimson: #b33838;
+  --vestige-rust-light: #ce4848;
+  --vestige-moss: #2c7746;
+  --vestige-brass: #507f49;
+  --vestige-brass-dark: #39663c;
+  --vestige-brass-light: #d7ecc7;
+  --color-surface-base: var(--vestige-parchment);
+  --color-surface-primary: #fff;
+  --color-surface-elevated: #fff;
+  --color-surface-dark: var(--vestige-walnut);
   --color-surface-dark-light: var(--vestige-walnut-light);
-  --color-surface-inset:      rgba(43, 27, 18, 0.05);
-  --color-surface-overlay:    rgba(30, 18, 10, 0.82);
-
-  /* Text & Content Tokens */
-  --color-text-primary:       var(--vestige-ink);
-  --color-text-secondary:     var(--vestige-ink-light);
-  --color-text-muted:         var(--vestige-ink-muted);
-  --color-text-inverse:       var(--vestige-cream-pure);
-  --color-text-inverse-muted: #D8C39A;
-  --color-text-gold:          var(--vestige-gold-royal);
-  --color-text-gold-antique:  var(--vestige-gold-antique);
-
-  /* Border & Archival Rule Tokens */
-  --color-border-subtle:      rgba(138, 106, 69, 0.22);
-  --color-border-medium:      rgba(138, 106, 69, 0.38);
-  --color-border-gold:        var(--vestige-gold-aged);
-  --color-border-ornamental:  var(--vestige-gold-antique);
-  --color-border-dark:        var(--vestige-walnut-light);
-
-  --border-archival:          1px solid rgba(196, 154, 69, 0.35);
-  --border-gold-ornamental:   1px solid var(--vestige-gold-antique);
-  --border-double-archival:   3px double var(--vestige-gold-aged);
-
-  /* Status Colors */
-  --color-accent:             var(--vestige-gold-antique);
-  --color-accent-hover:       var(--vestige-gold-royal);
-  --color-accent-alt:         var(--vestige-olive);
-  --color-success:            var(--vestige-moss);
-  --color-error:              var(--vestige-rust);
-  --color-focus-ring:         var(--vestige-gold-royal);
-  --color-focus-ring-glow:    rgba(212, 175, 55, 0.30);
-
-  /* --- 3. Typography Tokens --- */
-  --font-serif:    'Cinzel', 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
-  --font-heading:  'Playfair Display', 'Cinzel', 'Cormorant Garamond', Georgia, serif;
-  --font-body:     'Lora', 'Libre Baskerville', 'Source Serif 4', Garamond, serif;
-  --font-script:   'IM Fell English', Georgia, serif;
-  --font-ui:       'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono:     'Courier Prime', 'Courier New', monospace;
-
-  /* Font Size Scale */
-  --font-size-2xs: 0.6875rem; /* 11px */
-  --font-size-xs:  0.75rem;   /* 12px */
-  --font-size-sm:  0.875rem;  /* 14px */
-  --font-size-md:  1rem;      /* 16px */
-  --font-size-lg:  1.125rem;  /* 18px */
-  --font-size-xl:  1.25rem;   /* 20px */
-  --font-size-2xl: 1.5rem;    /* 24px */
-  --font-size-3xl: 1.875rem;  /* 30px */
-  --font-size-4xl: 2.25rem;   /* 36px */
-  --font-size-5xl: 3rem;      /* 48px */
-
-  /* Line Heights */
-  --line-height-tight:   1.2;
+  --color-surface-inset: #f0f5ec;
+  --color-surface-overlay: #132a20b8;
+  --color-text-primary: var(--vestige-ink);
+  --color-text-secondary: var(--vestige-ink-light);
+  --color-text-muted: var(--vestige-ink-muted);
+  --color-text-inverse: #fff;
+  --color-text-inverse-muted: #dce9d4;
+  --color-text-gold: var(--vestige-gold-royal);
+  --color-text-gold-antique: var(--vestige-gold-antique);
+  --color-border-subtle: #e1e8dc;
+  --color-border-medium: #c8d7be;
+  --color-border-gold: var(--color-border-medium);
+  --color-border-ornamental: var(--color-border-subtle);
+  --color-border-dark: #3d644b;
+  --border-archival: 1px solid var(--color-border-subtle);
+  --border-gold-ornamental: 1px solid var(--color-border-subtle);
+  --border-double-archival: 1px solid var(--color-border-medium);
+  --color-accent: #2d7046;
+  --color-accent-hover: #1d5633;
+  --color-accent-alt: #387b73;
+  --color-success: #287143;
+  --color-error: #b33838;
+  --color-focus-ring: #387e53;
+  --color-focus-ring-glow: #3e875724;
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: var(--font-ui);
+  --font-heading: var(--font-ui);
+  --font-body: var(--font-ui);
+  --font-script: var(--font-ui);
+  --font-display: var(--font-ui);
+  --font-sans: var(--font-ui);
+  --font-accent: var(--font-ui);
+  --font-mono: 'SFMono-Regular', Consolas, monospace;
+  --font-size-2xs: 0.6875rem;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --font-size-5xl: 3rem;
+  --line-height-tight: 1.2;
   --line-height-heading: 1.28;
-  --line-height-body:    1.65;
-  --line-height-loose:   1.85;
-
-  /* Letter Spacing */
-  --tracking-tight:  -0.02em;
-  --tracking-normal: 0em;
-  --tracking-wide:   0.05em;
-  --tracking-wider:  0.1em;
-  --tracking-widest: 0.2em;
-
-  /* --- 4. Spacing Scale --- */
-  --space-1:  4px;
-  --space-2:  8px;
-  --space-3:  12px;
-  --space-4:  16px;
-  --space-5:  20px;
-  --space-6:  24px;
-  --space-8:  32px;
+  --line-height-body: 1.65;
+  --line-height-loose: 1.85;
+  --tracking-tight: -0.035em;
+  --tracking-normal: 0;
+  --tracking-wide: -0.015em;
+  --tracking-wider: 0.04em;
+  --tracking-widest: 0.12em;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
   --space-10: 40px;
   --space-12: 48px;
   --space-16: 64px;
   --space-20: 80px;
-
-  /* --- 5. Border Radii (Antique Document Curves / Squared Archival) --- */
-  --radius-none: 0px;
-  --radius-xs:   2px;
-  --radius-sm:   4px;
-  --radius-md:   6px;
-  --radius-lg:   8px;
-  --radius-xl:   12px;
-  --radius-full: 9999px; /* Only for circular avatars and wax seals */
-
-  /* --- 6. Shadows & Paper Elevation --- */
-  --shadow-paper-sm:  0 1px 3px rgba(43, 27, 18, 0.08), 0 1px 2px rgba(43, 27, 18, 0.05);
-  --shadow-paper-md:  0 4px 14px rgba(43, 27, 18, 0.10), 0 2px 5px rgba(43, 27, 18, 0.06);
-  --shadow-paper-lg:  0 12px 32px rgba(43, 27, 18, 0.13), 0 4px 12px rgba(43, 27, 18, 0.07);
-  --shadow-walnut:    0 14px 40px rgba(30, 18, 10, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35);
-  --shadow-engraved:  inset 0 1px 3px rgba(43, 27, 18, 0.14), 0 1px 0 rgba(253, 249, 240, 0.7);
-  --shadow-gold-glow: 0 0 16px rgba(212, 175, 55, 0.28);
-  --shadow-plaque:    0 2px 6px rgba(43, 27, 18, 0.2), inset 0 1px 0 rgba(238, 201, 122, 0.3);
-
-  /* --- 7. Transitions & Motion --- */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 450ms cubic-bezier(0.4, 0, 0.2, 1);
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --radius-none: 0;
+  --radius-xs: 8px;
+  --radius-sm: 9px;
+  --vestige-radius-sm: 9px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  --shadow-paper-sm: 0 2px 6px #23432a05;
+  --shadow-paper-md: 0 6px 22px #23432a0c;
+  --shadow-paper-lg: 0 16px 40px #23432a12;
+  --shadow-walnut: 0 16px 40px #183c2424;
+  --shadow-engraved: none;
+  --shadow-gold-glow: 0 0 0 3px #3e875714;
+  --shadow-plaque: 0 2px 5px #183c2410;
+  --shadow-warm-sm: var(--shadow-paper-sm);
+  --shadow-warm-md: var(--shadow-paper-md);
+  --shadow-elevated: var(--shadow-paper-lg);
+  --shadow-leather: var(--shadow-paper-md);
+  --shadow-ledger: var(--shadow-paper-sm);
+  --shadow-subtle: var(--shadow-paper-sm);
+  --color-ash: var(--vestige-ink-muted);
+  --color-error-rust: var(--vestige-rust);
+  --color-espresso: var(--vestige-espresso);
+  --color-walnut: var(--vestige-walnut);
+  --color-parchment: var(--vestige-parchment);
+  --color-aged-ivory: #fff;
+  --color-sepia-light: #dfe7d9;
+  --color-sepia-mid: #6c8066;
+  --color-gold: #deefcc;
+  --color-gold-dark: #3d6842;
+  --color-antique-gold: #c6d9bf;
+  --color-antique-gold-dark: #7a9874;
+  --transition-fast: 150ms ease;
+  --transition-base: 220ms ease;
+  --transition-normal: 220ms ease;
+  --transition-slow: 400ms ease;
 }

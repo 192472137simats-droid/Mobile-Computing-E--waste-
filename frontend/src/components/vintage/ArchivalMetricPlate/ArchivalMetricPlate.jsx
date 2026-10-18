@@ -7,7 +7,8 @@ export function ArchivalMetricPlate({
   title,
   value,
   subtitle,
-  illustration = 'laptop', // 'laptop' | 'tools' | 'recycling' | 'scales' | 'books' | 'typewriter'
+  illustration,
+  compact = false,
   actionLabel,
   actionTo,
   onActionClick,
@@ -25,29 +26,39 @@ export function ArchivalMetricPlate({
       {/* Main Content Area: Value & Faded Engraved Illustration */}
       <div className={styles.middleRow}>
         <div className={styles.valueGroup}>
-          <div className={styles.valueNumber}>{value}</div>
+          <div
+            className={`${styles.valueNumber} ${compact ? styles.compact : ''}`}
+          >
+            {value}
+          </div>
           {subtitle && <div className={styles.subtitleText}>{subtitle}</div>}
         </div>
 
-        <div className={styles.illustrationWrapper} aria-hidden="true">
-          <VintageIllustration
-            name={illustration}
-            size={72}
-            opacity={0.35}
-            color="var(--vestige-ink, #2B1F16)"
-          />
-        </div>
+        {illustration && (
+          <div className={styles.illustrationWrapper} aria-hidden="true">
+            <VintageIllustration
+              name={illustration}
+              size={72}
+              opacity={0.35}
+              color="var(--vestige-ink, #2B1F16)"
+            />
+          </div>
+        )}
       </div>
 
       {/* Footer Action Button */}
-      {(actionLabel && (actionTo || onActionClick)) && (
+      {actionLabel && (actionTo || onActionClick) && (
         <div className={styles.footerRow}>
           {actionTo ? (
             <Link to={actionTo} className={styles.actionBtn}>
               {actionLabel}
             </Link>
           ) : (
-            <button type="button" onClick={onActionClick} className={styles.actionBtn}>
+            <button
+              type="button"
+              onClick={onActionClick}
+              className={styles.actionBtn}
+            >
               {actionLabel}
             </button>
           )}

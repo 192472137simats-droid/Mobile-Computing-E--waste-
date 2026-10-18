@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../contexts/useAuth';
 import Button from '../../common/Button/Button';
 import IconWrapper from '../../common/IconWrapper/IconWrapper';
 import styles from './Navbar.module.css';

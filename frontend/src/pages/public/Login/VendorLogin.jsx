@@ -10,7 +10,7 @@ import PasswordInput from '../../../components/forms/PasswordInput/PasswordInput
 import Button from '../../../components/common/Button/Button';
 import IconWrapper from '../../../components/common/IconWrapper/IconWrapper';
 import Divider from '../../../components/common/Divider/Divider';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../contexts/useAuth';
 import styles from './AuthForms.module.css';
 
 export function VendorLogin() {
@@ -18,7 +18,6 @@ export function VendorLogin() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState('');
-  const [forgotNotice, setForgotNotice] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -51,7 +50,6 @@ export function VendorLogin() {
     e.preventDefault();
     if (loading) return;
     setAuthError('');
-    setForgotNotice(false);
 
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -95,20 +93,13 @@ export function VendorLogin() {
                 label="VENDOR"
               />
             }
-            title="VENDOR LOGIN"
+            title="Welcome back, partner"
             subtitle="Welcome, Partner. Manage your repair and recycling services."
           >
             {authError && (
               <div className={styles.mockBanner} style={{ borderColor: 'var(--vestige-crimson)' }} role="alert">
                 <IconWrapper name="info" size={18} color="var(--vestige-crimson)" />
                 <p style={{ color: 'var(--vestige-crimson)' }}>{authError}</p>
-              </div>
-            )}
-
-            {forgotNotice && (
-              <div className={styles.mockBanner} role="status">
-                <IconWrapper name="info" size={18} color="var(--vestige-gold-dark)" />
-                <p>Automated workshop password recovery is not available yet. Contact VESTIGE support to regain access.</p>
               </div>
             )}
 
@@ -149,16 +140,12 @@ export function VendorLogin() {
               <div className={styles.formRowBetween}>
                 <label className={styles.checkboxLabel}>
                   <input type="checkbox" className={styles.checkbox} defaultChecked />
-                  <span>Remember on this terminal</span>
+                  <span>Remember me</span>
                 </label>
 
-                <button
-                  type="button"
-                  onClick={() => setForgotNotice(true)}
-                  className={styles.textLinkBtn}
-                >
+                <Link to="/forgot-password" className={styles.textLinkBtn}>
                   Forgot password?
-                </button>
+                </Link>
               </div>
 
               <div className={styles.actionBlock}>
@@ -170,7 +157,7 @@ export function VendorLogin() {
                   className={styles.submitBtn}
                   icon={<IconWrapper name="lock" size={18} />}
                 >
-                  {loading ? 'Authenticating...' : 'Sign In to Workshop Atelier'}
+                  {loading ? 'Authenticating...' : 'Vendor sign in'}
                 </Button>
               </div>
             </form>
@@ -185,9 +172,9 @@ export function VendorLogin() {
                 </Link>
               </p>
               <p style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
-                Device Owner or Patron?{' '}
+                Have a personal account?{' '}
                 <Link to="/login/user" style={{ color: 'var(--vestige-gold-dark)', fontWeight: 'bold' }}>
-                  Sign In to Patron Portal &rarr;
+                  Sign in &rarr;
                 </Link>
               </p>
             </div>

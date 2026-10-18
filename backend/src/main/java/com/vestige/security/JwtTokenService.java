@@ -77,6 +77,7 @@ public class JwtTokenService {
             payload.put("email", user.getEmail());
             payload.put("role", user.getRole().name());
             payload.put("full_name", user.getFullName());
+            payload.put("cv", user.getCredentialVersion());
             payload.put("iat", now);
             payload.put("exp", exp);
 

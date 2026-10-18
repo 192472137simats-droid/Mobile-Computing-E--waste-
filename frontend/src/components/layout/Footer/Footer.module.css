@@ -1,171 +1,71 @@
 .footer {
-  background: linear-gradient(180deg, var(--vestige-walnut) 0%, var(--vestige-walnut-dark) 100%);
-  color: var(--vestige-cream-pure);
-  border-top: 1px solid var(--vestige-gold-aged);
-  box-shadow: 0 -8px 24px rgba(24, 16, 10, 0.4);
-  margin-top: auto;
-  padding: 3.5rem 0 2.5rem;
-  width: 100%;
-  position: relative;
+  background: #f5f8f2;
+  border-top: 1px solid #e3eadd;
+  padding: 50px 0 20px;
+  scroll-margin-top: 90px;
 }
-
-.footer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, var(--vestige-gold-royal) 50%, transparent 100%);
-  opacity: 0.6;
+.grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1.2fr;
+  gap: 35px;
+  padding-bottom: 40px;
 }
-
-.brandRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-8);
-  flex-wrap: wrap;
-  margin-bottom: 2.5rem;
+.brand p {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #6c7c6d;
+  margin-top: 15px;
 }
-
-.quoteBlock {
-  flex: 1;
-  min-width: 280px;
-  text-align: center;
+.links {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
+  align-items: flex-start;
+  gap: 11px;
+  font-size: 12px;
+  color: #637361;
 }
-
-.quote {
-  font-family: var(--font-heading);
-  font-size: 1.25rem;
-  font-style: italic;
-  color: var(--vestige-cream-pure);
-  letter-spacing: 0.04em;
-  line-height: 1.4;
+.links strong {
+  font-size: 12px;
+  color: #294332;
+  margin-bottom: 7px;
 }
-
-.philosophy {
+.links a:hover {
+  color: #1d643d;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.support {
   display: inline-flex;
   align-items: center;
-  gap: 0.85rem;
-  font-family: var(--font-serif);
-  font-size: 0.725rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  color: var(--vestige-gold-light);
-  text-transform: uppercase;
+  gap: 35px;
+  padding: 11px 15px;
+  border: 1px solid #cbdac2;
+  border-radius: 7px;
+  color: #325637;
+  font-weight: 600;
 }
-
+.bottom {
+  padding-top: 20px;
+  border-top: 1px solid #dfe6d9;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  font-size: 10px;
+  color: #697a66;
+}
 .dot {
-  color: var(--vestige-gold-antique);
-  font-size: 0.65rem;
-  opacity: 0.8;
+  color: #74a466;
+  margin-left: 8px;
 }
-
-.supportBox {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  align-items: flex-end;
-}
-
-.supportLabel {
-  font-family: var(--font-ui);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--vestige-gold-light);
-  opacity: 0.85;
-}
-
-.whatsappButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 8px 16px;
-  background: rgba(104, 112, 74, 0.25);
-  border: 1px solid var(--vestige-olive);
-  border-radius: var(--radius-sm);
-  color: var(--vestige-cream-pure);
-  text-decoration: none;
-  transition: all var(--transition-fast);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-}
-
-.whatsappButton:hover {
-  background: rgba(104, 112, 74, 0.45);
-  border-color: var(--vestige-gold-royal);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(104, 112, 74, 0.35);
-}
-
-.whatsappIcon {
-  font-size: 1.25rem;
-}
-
-.whatsappText {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-
-.whatsappTitle {
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-.whatsappNumber {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--vestige-gold-light);
-}
-
-.dividerRule {
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(196, 154, 69, 0.3) 50%, transparent 100%);
-  margin-bottom: 1.75rem;
-}
-
-.bottomBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  color: #D8C39A;
-  opacity: 0.85;
-}
-
-.copyright {
-  letter-spacing: 0.02em;
-}
-
-.motto {
-  font-family: var(--font-serif);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  color: var(--vestige-gold-soft);
-}
-
-@media (max-width: 768px) {
-  .brandRow {
-    flex-direction: column;
-    text-align: center;
-    align-items: center;
+@media (max-width: 650px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 30px 20px;
   }
-  .supportBox {
-    align-items: center;
+  .brand {
+    grid-column: 1 / -1;
   }
-  .bottomBar {
+  .bottom {
     flex-direction: column;
-    text-align: center;
   }
 }

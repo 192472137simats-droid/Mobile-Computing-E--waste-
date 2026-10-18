@@ -10,7 +10,7 @@ import PasswordInput from '../../../components/forms/PasswordInput/PasswordInput
 import Button from '../../../components/common/Button/Button';
 import IconWrapper from '../../../components/common/IconWrapper/IconWrapper';
 import Divider from '../../../components/common/Divider/Divider';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../contexts/useAuth';
 import styles from './AuthForms.module.css';
 
 export function AdminLogin() {
@@ -18,7 +18,6 @@ export function AdminLogin() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState('');
-  const [forgotNotice, setForgotNotice] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -51,7 +50,6 @@ export function AdminLogin() {
     e.preventDefault();
     if (loading) return;
     setAuthError('');
-    setForgotNotice(false);
 
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -95,8 +93,8 @@ export function AdminLogin() {
                 label="ADMIN"
               />
             }
-            title="ADMIN LOGIN"
-            subtitle="Secure Administrative Portal. Authorized governance clearance."
+            title="Administrator sign in"
+            subtitle="Sign in to manage your platform and community."
           >
             {/* Elevated Security Notice */}
             <div className={styles.securityWarningBox}>
@@ -108,13 +106,6 @@ export function AdminLogin() {
               <div className={styles.mockBanner} style={{ borderColor: 'var(--vestige-crimson)' }} role="alert">
                 <IconWrapper name="info" size={18} color="var(--vestige-crimson)" />
                 <p style={{ color: 'var(--vestige-crimson)' }}>{authError}</p>
-              </div>
-            )}
-
-            {forgotNotice && (
-              <div className={styles.mockBanner} role="status">
-                <IconWrapper name="info" size={18} color="var(--vestige-gold-dark)" />
-                <p>Contact the platform administrator for credential recovery. No reset request was sent.</p>
               </div>
             )}
 
@@ -158,13 +149,9 @@ export function AdminLogin() {
                   <span>Enforce high-security session</span>
                 </label>
 
-                <button
-                  type="button"
-                  onClick={() => setForgotNotice(true)}
-                  className={styles.textLinkBtn}
-                >
+                <Link to="/forgot-password" className={styles.textLinkBtn}>
                   Credential recovery
-                </button>
+                </Link>
               </div>
 
               <div className={styles.actionBlock}>
@@ -176,7 +163,7 @@ export function AdminLogin() {
                   className={styles.submitBtn}
                   icon={<IconWrapper name="lock" size={18} />}
                 >
-                  {loading ? 'Verifying Clearance...' : 'Authenticate Officer Terminal'}
+                  {loading ? 'Signing in...' : 'Sign in'}
                 </Button>
               </div>
             </form>
@@ -188,10 +175,10 @@ export function AdminLogin() {
               <p>Looking for standard platform access?</p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
                 <Link to="/login/user" style={{ color: 'var(--vestige-gold-dark)', fontWeight: 'bold' }}>
-                  &rarr; Patron & Device Owner Sign In
+                  &rarr; User sign in
                 </Link>
                 <Link to="/login/vendor" style={{ color: 'var(--vestige-olive)', fontWeight: 'bold' }}>
-                  &rarr; Workshop & Partner Atelier Sign In
+                  &rarr; Vendor sign in
                 </Link>
               </div>
             </div>

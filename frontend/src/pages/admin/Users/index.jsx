@@ -39,6 +39,7 @@ export function AdminUsersPage() {
     }
   };
   useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- loading remote records is intentional here.
     loadUsers();
   }, []);
 

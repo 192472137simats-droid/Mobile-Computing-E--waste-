@@ -2,6 +2,8 @@ package com.vestige.controller;
 
 import com.vestige.dto.request.AdminProvisionRequest;
 import com.vestige.dto.request.LoginRequest;
+import com.vestige.dto.request.PasswordResetRequest;
+import com.vestige.dto.request.CompletePasswordResetRequest;
 import com.vestige.dto.request.PublicUserRegisterRequest;
 import com.vestige.dto.request.PublicVendorRegisterRequest;
 import com.vestige.dto.request.UserRegisterRequest;
@@ -11,6 +13,7 @@ import com.vestige.dto.response.AuthMeResponse;
 import com.vestige.dto.response.LoginResponse;
 import com.vestige.dto.response.UserSummaryResponse;
 import com.vestige.service.AuthService;
+import com.vestige.service.PasswordResetService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -23,9 +26,23 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, PasswordResetService passwordResetService) {
         this.authService = authService;
+        this.passwordResetService = passwordResetService;
+    }
+
+    @PostMapping("/password-reset/request")
+    public ResponseEntity<ApiResponse<Object>> requestPasswordReset(@Valid @RequestBody PasswordResetRequest request) {
+        passwordResetService.requestReset(request.email());
+        return ResponseEntity.ok(ApiResponse.ok("If an eligible account exists, a reset link has been sent.", null));
+    }
+
+    @PostMapping("/password-reset/complete")
+    public ResponseEntity<ApiResponse<Object>> completePasswordReset(@Valid @RequestBody CompletePasswordResetRequest request) {
+        passwordResetService.completeReset(request.token(), request.newPassword());
+        return ResponseEntity.ok(ApiResponse.ok("Password updated. Please sign in again.", null));
     }
 
     @PostMapping("/login")

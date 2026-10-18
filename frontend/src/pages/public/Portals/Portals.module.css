@@ -1,435 +1,142 @@
-.portalsWrapper {
-  padding: 3rem 1rem 5rem;
-  min-height: 90vh;
-  background-color: var(--vestige-walnut);
-  background-image:
-    radial-gradient(ellipse at 50% 10%, rgba(212, 175, 55, 0.16) 0%, transparent 65%),
-    radial-gradient(circle at 50% 90%, rgba(24, 16, 10, 0.95) 0%, transparent 100%);
-  position: relative;
+.wrapper {
+  padding: 60px 0 70px;
+  background: #f5f8f3;
+  min-height: 75vh;
 }
-
-.headerBlock {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.heading {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin: 0 auto 44px;
+  max-width: 650px;
 }
-
-.eyebrowOrnament {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.flourishWing {
-  color: var(--vestige-gold-aged);
-  font-size: 0.8rem;
-  opacity: 0.85;
-}
-
-.eyebrowText {
-  font-family: var(--font-heading);
-  font-size: 1.35rem;
+.heading > span {
+  font-size: 11px;
+  letter-spacing: 0.15em;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  color: #FFFDF7;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  color: #487051;
 }
-
-.portalSubtitle {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  color: #E8D7B5;
-  max-width: 580px;
-  margin: 0.25rem 0 0;
-  line-height: 1.5;
-  opacity: 0.9;
+.heading h1 {
+  font-size: clamp(32px, 4vw, 47px);
+  letter-spacing: -0.05em;
+  line-height: 1.15;
+  color: #233f2c;
+  margin: 18px 0;
 }
-
-/* 3-Column Arched Cards Grid */
-.portalsGrid {
+.heading p {
+  font-size: 14px;
+  color: #69786a;
+}
+.grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.75rem;
-  margin-bottom: 3rem;
+  gap: 22px;
 }
-
-@media (max-width: 992px) {
-  .portalsGrid {
-    grid-template-columns: 1fr;
-    max-width: 460px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-}
-
-/* Individual Arched Parchment Card */
-.archedCard {
-  background-color: var(--vestige-cream);
-  background-image:
-    radial-gradient(circle at 50% 0%, rgba(253, 249, 240, 0.8) 0%, transparent 70%),
-    linear-gradient(180deg, #FAF4E8 0%, #F3E6C8 100%);
-  border: 1.5px solid var(--vestige-gold-aged);
-  border-radius: 24px 24px var(--radius-sm) var(--radius-sm);
-  box-shadow:
-    0 12px 36px rgba(18, 11, 7, 0.45),
-    0 2px 6px rgba(0, 0, 0, 0.2),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+.card {
+  background: #fff;
+  border: 1px solid #e0e8db;
+  border-radius: 16px;
+  padding: 30px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
-
-.archedCard:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    0 18px 44px rgba(18, 11, 7, 0.55),
-    0 0 20px rgba(212, 175, 55, 0.25);
-}
-
-/* Corner Filigrees for Cards & Plaques */
-.cornerFiligree {
-  position: absolute;
-  width: 32px;
-  height: 32px;
-  pointer-events: none;
-  z-index: 4;
-}
-
-.topLeft {
-  top: 4px;
-  left: 4px;
-}
-
-.topRight {
-  top: 4px;
-  right: 4px;
-  transform: scaleX(-1);
-}
-
-.bottomLeft {
-  bottom: 4px;
-  left: 4px;
-  transform: scaleY(-1);
-}
-
-.bottomRight {
-  bottom: 4px;
-  right: 4px;
-  transform: scale(-1);
-}
-
-/* Arched Header & Cameo */
-.cardArchHeader {
-  padding: 2rem 1.5rem 1rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-bottom: 1px dashed rgba(196, 154, 69, 0.35);
-  position: relative;
-  z-index: 2;
-}
-
-.cameoEmblem {
-  width: 58px;
-  height: 58px;
-  margin-bottom: 0.75rem;
+.icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 2px 5px rgba(43, 27, 18, 0.2));
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: #ebf3df;
+  color: #46753d;
+  margin-bottom: 26px;
 }
-
-.crestSvg {
-  width: 100%;
-  height: 100%;
+.vendor .icon {
+  background: #e7f3f1;
+  color: #37776d;
 }
-
-.cardHeading {
-  font-family: var(--font-heading);
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--vestige-walnut);
-  margin: 0 0 4px;
+.admin .icon {
+  background: #edf0f8;
+  color: #526699;
 }
-
-.cardSubtitle {
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  font-style: italic;
-  color: var(--vestige-ink-light);
-  margin: 0;
+.label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  font-weight: 650;
+  color: #6b7c68;
 }
-
-/* Form Body */
-.formBody {
-  padding: 1.25rem 1.75rem 0.5rem;
-  display: flex;
-  flex-direction: column;
+.card h2 {
+  font-size: 25px;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+  margin: 12px 0;
+  color: #28432f;
+}
+.card > p {
+  font-size: 13px;
+  color: #6c7a69;
+  line-height: 1.85;
+}
+.card ul {
+  list-style: none;
+  margin: 25px 0 30px;
+  display: grid;
+  gap: 13px;
   flex: 1;
-  position: relative;
-  z-index: 2;
 }
-
-.fieldGroup {
+.card li {
   display: flex;
-  flex-direction: column;
-  margin-bottom: 1rem;
+  gap: 9px;
+  font-size: 12px;
+  color: #486044;
 }
-
-.fieldLabel {
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--vestige-ink-light);
-  margin-bottom: 4px;
+.card li span {
+  color: #3d7b45;
 }
-
-.inputWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.inputIcon {
-  position: absolute;
-  left: 12px;
-  color: var(--vestige-sepia);
-  pointer-events: none;
-  display: flex;
-}
-
-.archivalInput {
-  width: 100%;
-  height: 42px;
-  padding: 0 36px 0 38px;
-  background-color: var(--vestige-cream-pure);
-  color: var(--vestige-ink);
-  border: 1px solid var(--vestige-gold-aged);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  box-shadow: inset 0 1px 3px rgba(43, 27, 18, 0.08);
-  transition: all var(--transition-fast);
-  outline: none;
-}
-
-.archivalInput:focus {
-  border-color: var(--vestige-gold-royal);
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25), inset 0 1px 2px rgba(43, 27, 18, 0.05);
-}
-
-.eyeToggle {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  color: var(--vestige-sepia);
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-}
-
-.eyeToggle:hover {
-  color: var(--vestige-walnut);
-}
-
-.optionsRow {
+.login {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.76rem;
-  font-family: var(--font-body);
-  margin-bottom: 1.25rem;
+  border: 1px solid #cfdfc5;
+  padding: 14px 16px;
+  background: #f8fbf5;
+  border-radius: 8px;
+  color: #315a35;
+  font-size: 13px;
+  font-weight: 650;
 }
-
-.rememberLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--vestige-ink-light);
-  cursor: pointer;
+.user .login {
+  background: #255e40;
+  color: white;
+  border-color: #255e40;
 }
-
-.checkbox {
-  accent-color: var(--vestige-gold-antique);
+.login:hover {
+  box-shadow: 0 4px 12px #28432f1a;
 }
-
-.forgotLink {
-  color: var(--vestige-bronze);
-  text-decoration: none;
-  font-style: italic;
+.register,
+.note {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 11px;
+  color: #687c60;
 }
-
-.forgotLink:hover {
-  color: var(--vestige-walnut);
+.register:hover {
   text-decoration: underline;
 }
-
-/* Distinct Role Login Buttons */
-.userLoginBtn {
-  width: 100%;
-  background: linear-gradient(180deg, #3A2618 0%, #20130B 100%) !important;
-  color: #FAF4E8 !important;
-  border: 1.5px solid var(--vestige-gold-aged) !important;
-  box-shadow: 0 3px 8px rgba(32, 19, 11, 0.35) !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.14em !important;
-}
-
-.adminLoginBtn {
-  width: 100%;
-  background: linear-gradient(180deg, #B8860B 0%, #8C6E3A 100%) !important;
-  color: #1E120A !important;
-  border: 1.5px solid #D4AF37 !important;
-  box-shadow: 0 3px 8px rgba(184, 134, 11, 0.35) !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.14em !important;
-}
-
-.vendorLoginBtn {
-  width: 100%;
-  background: linear-gradient(180deg, #465038 0%, #2E3824 100%) !important;
-  color: #FAF4E8 !important;
-  border: 1.5px solid #68704A !important;
-  box-shadow: 0 3px 8px rgba(70, 80, 56, 0.35) !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.14em !important;
-}
-
-.accountAction {
-  margin-top: 1rem;
+.help {
   text-align: center;
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  color: var(--vestige-ink-light);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
+  margin-top: 28px;
+  font-size: 12px;
+  color: #697d61;
 }
-
-.registerPlaqueLink {
-  font-family: var(--font-serif);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--vestige-walnut);
-  padding: 4px 10px;
-  border: 1px solid var(--vestige-gold-aged);
-  border-radius: var(--radius-xs);
-  background: rgba(184, 134, 11, 0.1);
-  text-decoration: none;
-  transition: all var(--transition-fast);
-}
-
-.registerPlaqueLink:hover {
-  background: rgba(184, 134, 11, 0.2);
-  border-color: var(--vestige-gold-royal);
-  transform: translateY(-1px);
-}
-
-.badgeLine {
-  margin-top: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  font-family: var(--font-body);
-  font-size: 0.72rem;
-  color: var(--vestige-ink-muted);
-  font-style: italic;
-}
-
-.goldLockIcon, .recycleIcon {
-  font-size: 0.85rem;
-}
-
-.errorNotice {
-  margin: 0.75rem 1.5rem 0;
-  padding: 0.5rem 0.75rem;
-  background-color: #FAF0EE;
-  border: 1px solid var(--vestige-rust);
-  border-radius: var(--radius-xs);
-  color: var(--vestige-rust);
-  font-size: 0.75rem;
-  text-align: center;
-}
-
-/* Bottom Engraved Artwork */
-.bottomArtwork {
-  margin-top: auto;
-  padding: 0.5rem 1rem 0.25rem;
-  display: flex;
-  justify-content: center;
-  border-top: 1px dashed rgba(196, 154, 69, 0.2);
-  position: relative;
-  z-index: 2;
-}
-
-.artworkSvg {
-  width: 100%;
-  max-width: 240px;
-  height: auto;
-}
-
-/* Bottom Archival Motto Plaque matching Reference 3 */
-.bottomPlaque {
-  max-width: 520px;
-  margin: 0 auto 2rem;
-  padding: 0.85rem 1.5rem;
-  background: linear-gradient(180deg, #2B1B12 0%, #1E120A 100%);
-  border: 1.5px solid var(--vestige-gold-aged);
-  border-radius: var(--radius-xs);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(212, 175, 55, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  position: relative;
-}
-
-.plaqueShield {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.plaqueText {
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-}
-
-.plaqueTitle {
-  font-family: var(--font-heading);
-  font-size: 0.88rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #FFFDF7;
-}
-
-.plaqueMotto {
-  font-family: var(--font-serif);
-  font-size: 0.72rem;
-  color: var(--vestige-gold-light);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.bottomQuote {
-  text-align: center;
-  font-family: var(--font-heading);
-  font-size: 1.15rem;
-  font-style: italic;
-  color: #E8D7B5;
-  letter-spacing: 0.04em;
-  opacity: 0.85;
+@media (max-width: 800px) {
+  .grid {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    margin: auto;
+  }
+  .wrapper {
+    padding-top: 36px;
+  }
+  .card {
+    padding: 26px;
+  }
 }

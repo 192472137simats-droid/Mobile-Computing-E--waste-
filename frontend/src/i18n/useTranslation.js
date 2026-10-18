@@ -1,4 +1,4 @@
-import { useUI } from '../contexts/UIContext';
+import { useUI } from '../contexts/useUI';
 import { translations } from './translations';
 
 /**

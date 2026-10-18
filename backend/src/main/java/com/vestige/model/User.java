@@ -28,6 +28,9 @@ public class User implements Persistable<UUID> {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    @Column(name = "credential_version", nullable = false)
+    private long credentialVersion;
+
     @Column(name = "phone", length = 20)
     private String phone;
 
@@ -118,6 +121,14 @@ public class User implements Persistable<UUID> {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public long getCredentialVersion() {
+        return credentialVersion;
+    }
+
+    public void setCredentialVersion(long credentialVersion) {
+        this.credentialVersion = credentialVersion;
     }
 
     public String getPhone() {

@@ -30,6 +30,7 @@ export function AdminAuditPage() {
     }
   };
   useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- this effect loads remote data.
     loadActions();
   }, []);
 

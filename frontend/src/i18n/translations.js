@@ -153,8 +153,8 @@ export const translations = {
     'vendor.updateStatus': 'Update Restoration Progress',
 
     // Admin Portal
-    'admin.governance': 'Institutional Governance Command',
-    'admin.dashboardTitle': 'Registry Governance Dashboard',
+    'admin.governance': 'Platform overview',
+    'admin.dashboardTitle': 'Administration dashboard',
     'admin.nav.dashboard': 'Dashboard',
     'admin.nav.users': 'Users',
     'admin.nav.vendors': 'Vendors',

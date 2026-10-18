@@ -36,6 +36,7 @@ export function AdminPerformance() {
   }, [range]);
 
   useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- this effect loads remote data.
     loadPerformanceData(range);
   }, [range, loadPerformanceData]);
 
